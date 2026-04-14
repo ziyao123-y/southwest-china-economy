@@ -743,6 +743,7 @@
         function showTable(filter) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
+            currentFilter = filter;
             renderTable(allData, filter);
         }
 
@@ -751,7 +752,32 @@
         const suggestionsBox = document.getElementById('suggestions');
         let currentFilter = 'all';
 
-        // 输入时显示联想
+        // 获取当前筛选条件下的数据
+        function getFilteredData() {
+            let filteredData = allData;
+            const isCity = d => !d['区县'] || d['区县'] === null;
+            
+            if (currentFilter === 'city') {
+                filteredData = allData.filter(isCity);
+            } else if (currentFilter === 'district') {
+                filteredData = allData.filter(d => d['区县'] && d['区县'] !== null);
+            } else if (currentFilter === 'guizhou' || currentFilter === 'guizhou-revenue') {
+                filteredData = allData.filter(d => d['省份'] === '贵州省');
+            } else if (currentFilter === 'yunnan' || currentFilter === 'yunnan-revenue') {
+                filteredData = allData.filter(d => d['省份'] === '云南省');
+            } else if (currentFilter === 'guangxi' || currentFilter === 'guangxi-revenue') {
+                filteredData = allData.filter(d => d['省份'] === '广西壮族自治区');
+            }
+            
+            // 根据当前排序方式排序
+            if (currentFilter.includes('revenue')) {
+                filteredData = [...filteredData].sort((a, b) => (b['一般公共预算收入(亿元)'] || 0) - (a['一般公共预算收入(亿元)'] || 0));
+            }
+            
+            return filteredData;
+        }
+
+        // 输入时显示联想（基于当前筛选条件）
         searchInput.addEventListener('input', function() {
             const query = this.value.trim().toLowerCase();
             if (query.length === 0) {
@@ -759,7 +785,8 @@
                 return;
             }
 
-            const matches = allData.filter(d => d['地区名称'].toLowerCase().includes(query)).slice(0, 10);
+            const filteredData = getFilteredData();
+            const matches = filteredData.filter(d => d['地区名称'].toLowerCase().includes(query)).slice(0, 10);
             
             if (matches.length === 0) {
                 suggestionsBox.style.display = 'none';
@@ -767,7 +794,8 @@
             }
 
             suggestionsBox.innerHTML = matches.map((d, idx) => {
-                const rank = allData.indexOf(d) + 1;
+                const filteredData = getFilteredData();
+                const rank = filteredData.indexOf(d) + 1;
                 const isCity = !d['区县'] || d['区县'] === null;
                 return `
                     <div class="suggestion-item" onclick="selectSuggestion('${d['地区名称']}', ${rank})">
@@ -793,17 +821,18 @@
             jumpToRow(rank);
         }
 
-        // 搜索并跳转
+        // 搜索并跳转（基于当前筛选条件）
         function searchAndJump() {
             const query = searchInput.value.trim();
             if (!query) return;
 
-            const index = allData.findIndex(d => d['地区名称'] === query);
+            const filteredData = getFilteredData();
+            const index = filteredData.findIndex(d => d['地区名称'] === query);
             if (index === -1) {
                 // 尝试模糊匹配
-                const fuzzyMatch = allData.find(d => d['地区名称'].includes(query));
+                const fuzzyMatch = filteredData.find(d => d['地区名称'].includes(query));
                 if (fuzzyMatch) {
-                    const rank = allData.indexOf(fuzzyMatch) + 1;
+                    const rank = filteredData.indexOf(fuzzyMatch) + 1;
                     jumpToRow(rank);
                 } else {
                     alert('未找到该地区，请检查输入');
