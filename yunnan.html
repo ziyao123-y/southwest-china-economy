@@ -606,6 +606,104 @@
             event.target.classList.add('active');
             renderTable(allData, filter);
         }
+
+        // 搜索和联想功能
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsBox = document.getElementById('suggestions');
+        let currentFilter = 'all';
+
+        // 输入时显示联想
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim().toLowerCase();
+            if (query.length === 0) {
+                suggestionsBox.style.display = 'none';
+                return;
+            }
+
+            const matches = allData.filter(d => d['地区名称'].toLowerCase().includes(query)).slice(0, 10);
+            
+            if (matches.length === 0) {
+                suggestionsBox.style.display = 'none';
+                return;
+            }
+
+            suggestionsBox.innerHTML = matches.map((d, idx) => {
+                const rank = allData.indexOf(d) + 1;
+                const isCity = !d['区县'] || d['区县'] === null;
+                return `
+                    <div class="suggestion-item" onclick="selectSuggestion('${d['地区名称']}', ${rank})">
+                        <span>${d['地区名称']} ${isCity ? '(地级市)' : ''}</span>
+                        <span class="rank">第${rank}名</span>
+                    </div>
+                `;
+            }).join('');
+            suggestionsBox.style.display = 'block';
+        });
+
+        // 点击外部隐藏联想
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-box')) {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+
+        // 选择联想项
+        function selectSuggestion(name, rank) {
+            searchInput.value = name;
+            suggestionsBox.style.display = 'none';
+            jumpToRow(rank);
+        }
+
+        // 搜索并跳转
+        function searchAndJump() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            const index = allData.findIndex(d => d['地区名称'] === query);
+            if (index === -1) {
+                // 尝试模糊匹配
+                const fuzzyMatch = allData.find(d => d['地区名称'].includes(query));
+                if (fuzzyMatch) {
+                    const rank = allData.indexOf(fuzzyMatch) + 1;
+                    jumpToRow(rank);
+                } else {
+                    alert('未找到该地区，请检查输入');
+                }
+            } else {
+                jumpToRow(index + 1);
+            }
+        }
+
+        // 跳转到指定行
+        function jumpToRow(rank) {
+            const tbody = document.getElementById('tableBody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            if (rank > 0 && rank <= rows.length) {
+                const targetRow = rows[rank - 1];
+                
+                // 移除之前的高亮
+                rows.forEach(r => r.classList.remove('highlight-row'));
+                
+                // 添加高亮
+                targetRow.classList.add('highlight-row');
+                
+                // 滚动到该行
+                targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // 3秒后移除高亮
+                setTimeout(() => {
+                    targetRow.classList.remove('highlight-row');
+                }, 3000);
+            }
+        }
+
+        // 回车键搜索
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchAndJump();
+            }
+        });
     </script>
 </body>
 </html>
