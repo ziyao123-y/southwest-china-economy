@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西南三省经济数据对比分析 - 2025</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            color: white;
+            padding: 50px 20px;
+        }
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .province-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        .province-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .province-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .province-card.guizhou {
+            border-top: 5px solid #667eea;
+        }
+        .province-card.yunnan {
+            border-top: 5px solid #11998e;
+        }
+        .province-card.guangxi {
+            border-top: 5px solid #f5576c;
+        }
+        .province-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .province-card .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .province-card .stat {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+        }
+        .province-card .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .province-card .stat-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .province-card .view-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .province-card.guizhou .view-btn {
+            background: #667eea;
+            color: white;
+        }
+        .province-card.yunnan .view-btn {
+            background: #11998e;
+            color: white;
+        }
+        .province-card.guangxi .view-btn {
+            background: #f5576c;
+            color: white;
+        }
+        .chart-section {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+        }
+        .chart-section h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.4rem;
+            border-left: 5px solid #667eea;
+            padding-left: 15px;
+        }
+        .chart-container {
+            position: relative;
+            height: 500px;
+        }
+        .chart-container.large {
+            height: 600px;
+        }
+        .chart-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        .comparison-table th, .comparison-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+        .comparison-table td {
+            color: #555;
+        }
+        .comparison-table .number {
+            text-align: right;
+            font-family: 'SF Mono', monospace;
+            font-weight: 500;
+        }
+        .rank-1 { color: #f1c40f; font-weight: bold; }
+        .rank-2 { color: #95a5a6; font-weight: bold; }
+        .rank-3 { color: #cd7f32; font-weight: bold; }
+        .type-city { color: #667eea; font-weight: 600; }
+        .type-district { color: #11998e; }
+        .table-wrapper {
+            max-height: 600px;
+            overflow-y: auto;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+        .analysis-section {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+        }
+        .analysis-section h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.4rem;
+            border-left: 5px solid #667eea;
+            padding-left: 15px;
+        }
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        .analysis-item {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .analysis-item h3 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        .analysis-item p {
+            color: #666;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+        .highlight {
+            background: linear-gradient(120deg, #ffeaa7 0%, #ffeaa7 100%);
+            background-repeat: no-repeat;
+            background-size: 100% 40%;
+            background-position: 0 88%;
+            padding: 0 4px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        .tab-btn:hover {
+            background: #e0e0e0;
+        }
+        .tab-btn.active:hover {
+            background: #5a6fd6;
+        }
+        footer {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            opacity: 0.9;
+        }
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+            .province-cards {
+                grid-template-columns: 1fr;
+            }
+            .chart-row {
+                grid-template-columns: 1fr;
+            }
+            .chart-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>西南三省经济数据对比分析</h1>
+            <p>贵州 · 云南 · 广西 | 2025年度数据深度解读 | 地市级+区县级全排序</p>
+        </header>
+
+        <div class="province-cards">
+            <a href="guizhou.html" class="province-card guizhou">
+                <h2>贵州省</h2>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-label">GDP总量</div>
+                        <div class="stat-value">22,562亿</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">财政收入</div>
+                        <div class="stat-value">1,565亿</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">财政支出</div>
+                        <div class="stat-value">4,672亿</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">债务余额</div>
+                        <div class="stat-value">17,056亿</div>
+                    </div>
+                </div>
+                <span class="view-btn">查看详情 →</span>
+            </a>
+
+            <a href="yunnan.html" class="province-card yunnan">
+                <h2>云南省</h2>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-label">GDP总量</div>
+                        <div class="stat-value">31,636亿</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">财政收入</div>
+                        <div class="stat-value">2,144亿</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">财政支出</div>
+                        <div class="stat-value">5,947亿</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">债务余额</div>
+                        <div class="stat-value">14,529亿</div>
+                    </div>
+                </div>
+                <span class="view-btn">查看详情 →</span>
+            </a>
+
+            <a href="guangxi.html" class="province-card guangxi">
+                <h2>广西壮族自治区</h2>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-label">GDP总量</div>
+                        <div class="stat-value">27,616亿</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">财政收入</div>
+                        <div class="stat-value">1,749亿</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">财政支出</div>
+                        <div class="stat-value">5,229亿</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">债务余额</div>
+                        <div class="stat-value">10,067亿</div>
+                    </div>
+                </div>
+                <span class="view-btn">查看详情 →</span>
+            </a>
+        </div>
+
+        <div class="chart-section">
+            <h2>西南三省367个地市区县GDP排名TOP50</h2>
+            <div class="chart-container large">
+                <canvas id="top50Chart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h2>西南三省367个地市区县财政收入排名TOP50</h2>
+            <div class="chart-container large">
+                <canvas id="revenueTop50Chart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-row">
+            <div class="chart-section">
+                <h2>三省GDP总量对比</h2>
+                <div class="chart-container">
+                    <canvas id="gdpCompareChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-section">
+                <h2>三省财政收入对比</h2>
+                <div class="chart-container">
+                    <canvas id="revenueCompareChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-row">
+            <div class="chart-section">
+                <h2>财政收支结构对比</h2>
+                <div class="chart-container">
+                    <canvas id="budgetCompareChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-section">
+                <h2>债务余额与财政自给率</h2>
+                <div class="chart-container">
+                    <canvas id="debtCompareChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h2>367个地市区县完整排名</h2>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTable('all')">全部排名(GDP)</button>
+                <button class="tab-btn" onclick="showTable('all-revenue')">全部排名(财政收入)</button>
+                <button class="tab-btn" onclick="showTable('city')">仅地级市</button>
+                <button class="tab-btn" onclick="showTable('district')">仅区县</button>
+                <button class="tab-btn" onclick="showTable('guizhou')">贵州省</button>
+                <button class="tab-btn" onclick="showTable('guizhou-revenue')">贵州(财政收入)</button>
+                <button class="tab-btn" onclick="showTable('yunnan')">云南省</button>
+                <button class="tab-btn" onclick="showTable('yunnan-revenue')">云南(财政收入)</button>
+                <button class="tab-btn" onclick="showTable('guangxi')">广西</button>
+                <button class="tab-btn" onclick="showTable('guangxi-revenue')">广西(财政收入)</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="comparison-table" id="rankingTable">
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>地区名称</th>
+                            <th>类型</th>
+                            <th>所属省份</th>
+                            <th>所属地市</th>
+                            <th>GDP(亿元)</th>
+                            <th>财政收入(亿元)</th>
+                            <th>财政支出(亿元)</th>
+                            <th>债务余额(亿元)</th>
+                            <th>财政自给率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="analysis-section">
+            <h2>三省对比分析与洞察</h2>
+            <div class="analysis-grid">
+                <div class="analysis-item">
+                    <h3>🎯 经济总量格局</h3>
+                    <p>云南省以<span class="highlight">31,636亿元</span>GDP领跑西南三省，广西27,616亿元紧随其后，贵州22,562亿元排名第三。云南领先贵州约40%，显示出较强的经济规模优势。</p>
+                </div>
+                <div class="analysis-item">
+                    <h3>💰 财政实力对比</h3>
+                    <p>财政收入排名与GDP一致：云南（2,144亿）> 广西（1,749亿）> 贵州（1,565亿）。云南财政收入优势明显，财政自给率36%也是三省最高。</p>
+                </div>
+                <div class="analysis-item">
+                    <h3>⚠️ 债务风险警示</h3>
+                    <p>贵州省债务率<span class="highlight">10.9倍</span>居首，远超云南（6.8倍）和广西（5.8倍）。贵州债务余额17,056亿元，虽低于云南，但相对于财政收入压力最大。</p>
+                </div>
+                <div class="analysis-item">
+                    <h3>🏛️ 财政支出压力</h3>
+                    <p>三省财政自给率均在33-36%之间，支出收入比约2.8-3.0，均高度依赖中央转移支付。广西支出收入比最高（2.99），财政缺口压力较大。</p>
+                </div>
+                <div class="analysis-item">
+                    <h3>📊 头部区县表现</h3>
+                    <p>仁怀市（2026亿）、盘州市（760亿）、兴义市（588亿）等区县GDP超过部分地级市，显示出强县经济的突出表现。云南昆明首位度最高。</p>
+                </div>
+                <div class="analysis-item">
+                    <h3>🌏 区域发展差异</h3>
+                    <p>三省内部发展不均衡明显，省会城市GDP占比高。云南16个地市、贵州9个、广西14个，加上328个区县，共367个行政单位参与排名。</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>数据来源：2025年贵州云南广西经济数据统计 | 共367个地市区县 | 生成时间：2025年4月</p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">点击上方省份卡片查看详细数据</p>
+        </footer>
+    </div>
+
+    <script>
+        // 加载所有数据
+        let allData = [];
+        
+        fetch('all_data.json')
+            .then(response => response.json())
+            .then(data => {
+                // 处理NaN值，转换为null
+                allData = data.map(d => ({
+                    ...d,
+                    '区县': d['区县'] === null || d['区县'] === undefined || (typeof d['区县'] === 'number' && isNaN(d['区县'])) ? null : d['区县']
+                }));
+                renderTop50Chart(allData);
+                renderRevenueTop50Chart(allData);
+                renderTable(allData, 'all');
+            });
+
+        // 渲染TOP50图表
+        function renderTop50Chart(data) {
+            const top50 = data.slice(0, 50);
+            const labels = top50.map(d => d['地区名称']);
+            const values = top50.map(d => d['GDP(亿元)']);
+            const colors = top50.map(d => {
+                if (d['省份'] === '贵州省') return 'rgba(102, 126, 234, 0.8)';
+                if (d['省份'] === '云南省') return 'rgba(17, 153, 142, 0.8)';
+                return 'rgba(245, 87, 108, 0.8)';
+            });
+
+            new Chart(document.getElementById('top50Chart'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'GDP（亿元）',
+                        data: values,
+                        backgroundColor: colors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { 
+                            display: true,
+                            labels: {
+                                generateLabels: function() {
+                                    return [
+                                        { text: '贵州省', fillStyle: 'rgba(102, 126, 234, 0.8)' },
+                                        { text: '云南省', fillStyle: 'rgba(17, 153, 142, 0.8)' },
+                                        { text: '广西', fillStyle: 'rgba(245, 87, 108, 0.8)' }
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '亿';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 渲染财政收入TOP50图表
+        function renderRevenueTop50Chart(data) {
+            // 按财政收入排序
+            const sortedByRevenue = [...data].sort((a, b) => (b['一般公共预算收入(亿元)'] || 0) - (a['一般公共预算收入(亿元)'] || 0));
+            const top50 = sortedByRevenue.slice(0, 50);
+            const labels = top50.map(d => d['地区名称']);
+            const values = top50.map(d => d['一般公共预算收入(亿元)'] || 0);
+            const colors = top50.map(d => {
+                if (d['省份'] === '贵州省') return 'rgba(102, 126, 234, 0.8)';
+                if (d['省份'] === '云南省') return 'rgba(17, 153, 142, 0.8)';
+                return 'rgba(245, 87, 108, 0.8)';
+            });
+
+            new Chart(document.getElementById('revenueTop50Chart'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '财政收入（亿元）',
+                        data: values,
+                        backgroundColor: colors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { 
+                            display: true,
+                            labels: {
+                                generateLabels: function() {
+                                    return [
+                                        { text: '贵州省', fillStyle: 'rgba(102, 126, 234, 0.8)' },
+                                        { text: '云南省', fillStyle: 'rgba(17, 153, 142, 0.8)' },
+                                        { text: '广西', fillStyle: 'rgba(245, 87, 108, 0.8)' }
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '亿';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 渲染表格
+        function renderTable(data, filter) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            let filteredData = data;
+            const isCity = d => !d['区县'] || d['区县'] === null;
+            
+            // 按GDP排序（默认）
+            let sortByGDP = true;
+            
+            if (filter === 'city') {
+                filteredData = data.filter(isCity);
+            } else if (filter === 'district') {
+                filteredData = data.filter(d => d['区县'] && d['区县'] !== null);
+            } else if (filter === 'guizhou') {
+                filteredData = data.filter(d => d['省份'] === '贵州省');
+            } else if (filter === 'yunnan') {
+                filteredData = data.filter(d => d['省份'] === '云南省');
+            } else if (filter === 'guangxi') {
+                filteredData = data.filter(d => d['省份'] === '广西壮族自治区');
+            } else if (filter === 'all-revenue') {
+                // 全部按财政收入排序
+                sortByGDP = false;
+            } else if (filter === 'guizhou-revenue') {
+                filteredData = data.filter(d => d['省份'] === '贵州省');
+                sortByGDP = false;
+            } else if (filter === 'yunnan-revenue') {
+                filteredData = data.filter(d => d['省份'] === '云南省');
+                sortByGDP = false;
+            } else if (filter === 'guangxi-revenue') {
+                filteredData = data.filter(d => d['省份'] === '广西壮族自治区');
+                sortByGDP = false;
+            }
+            
+            // 根据选择的排序方式排序
+            if (!sortByGDP) {
+                filteredData = [...filteredData].sort((a, b) => (b['一般公共预算收入(亿元)'] || 0) - (a['一般公共预算收入(亿元)'] || 0));
+            }
+            
+            filteredData.forEach((d, index) => {
+                const row = document.createElement('tr');
+                const isCityRow = !d['区县'] || d['区县'] === null;
+                const typeClass = isCityRow ? 'type-city' : 'type-district';
+                const typeText = isCityRow ? '地级市' : '区县';
+                const parentCity = isCityRow ? '-' : (d['地级市'] || '-');
+                
+                const gdp = d['GDP(亿元)'] || 0;
+                const revenue = d['一般公共预算收入(亿元)'] || 0;
+                const expenditure = d['一般公共预算支出(亿元)'] || 0;
+                const debt = d['地方政府债务余额(亿元)'] || 0;
+                const selfRate = expenditure > 0 ? ((revenue / expenditure) * 100).toFixed(1) : '-';
+                
+                let rankClass = '';
+                if (index === 0) rankClass = 'rank-1';
+                else if (index === 1) rankClass = 'rank-2';
+                else if (index === 2) rankClass = 'rank-3';
+                
+                row.innerHTML = `
+                    <td class="number ${rankClass}">${index + 1}</td>
+                    <td><strong>${d['地区名称']}</strong></td>
+                    <td class="${typeClass}">${typeText}</td>
+                    <td>${d['省份']}</td>
+                    <td>${parentCity}</td>
+                    <td class="number">${gdp.toFixed(2)}</td>
+                    <td class="number">${revenue.toFixed(2)}</td>
+                    <td class="number">${expenditure.toFixed(2)}</td>
+                    <td class="number">${debt.toFixed(2)}</td>
+                    <td class="number">${selfRate}%</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 切换表格视图
+        function showTable(filter) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderTable(allData, filter);
+        }
+
+        // 三省对比数据
+        const provinceData = {
+            names: ['贵州省', '云南省', '广西壮族自治区'],
+            gdp: [22562, 31636, 27616],
+            revenue: [1565, 2144, 1749],
+            expenditure: [4672, 5947, 5229],
+            debt: [17056, 14529, 10067],
+            selfSufficiency: [33.5, 36.0, 33.4],
+            debtRatio: [10.9, 6.8, 5.8]
+        };
+
+        const colors = {
+            guizhou: 'rgba(102, 126, 234, 0.8)',
+            yunnan: 'rgba(17, 153, 142, 0.8)',
+            guangxi: 'rgba(245, 87, 108, 0.8)'
+        };
+
+        const borderColors = {
+            guizhou: 'rgba(102, 126, 234, 1)',
+            yunnan: 'rgba(17, 153, 142, 1)',
+            guangxi: 'rgba(245, 87, 108, 1)'
+        };
+
+        // GDP对比图
+        new Chart(document.getElementById('gdpCompareChart'), {
+            type: 'bar',
+            data: {
+                labels: provinceData.names,
+                datasets: [{
+                    label: 'GDP（亿元）',
+                    data: provinceData.gdp,
+                    backgroundColor: [colors.guizhou, colors.yunnan, colors.guangxi],
+                    borderColor: [borderColors.guizhou, borderColors.yunnan, borderColors.guangxi],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return value + '亿'; } }
+                    }
+                }
+            }
+        });
+
+        // 财政收入对比图
+        new Chart(document.getElementById('revenueCompareChart'), {
+            type: 'bar',
+            data: {
+                labels: provinceData.names,
+                datasets: [
+                    { label: '财政收入', data: provinceData.revenue, backgroundColor: 'rgba(46, 204, 113, 0.8)' },
+                    { label: '财政支出', data: provinceData.expenditure, backgroundColor: 'rgba(231, 76, 60, 0.8)' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return value + '亿'; } }
+                    }
+                }
+            }
+        });
+
+        // 财政结构雷达图
+        new Chart(document.getElementById('budgetCompareChart'), {
+            type: 'radar',
+            data: {
+                labels: ['GDP', '财政收入', '财政支出', '财政自给率', '债务控制'],
+                datasets: [
+                    { label: '贵州省', data: [71, 73, 79, 33.5, 30], backgroundColor: 'rgba(102, 126, 234, 0.2)', borderColor: colors.guizhou, borderWidth: 2 },
+                    { label: '云南省', data: [100, 100, 100, 36, 60], backgroundColor: 'rgba(17, 153, 142, 0.2)', borderColor: colors.yunnan, borderWidth: 2 },
+                    { label: '广西', data: [87, 82, 88, 33.4, 70], backgroundColor: 'rgba(245, 87, 108, 0.2)', borderColor: colors.guangxi, borderWidth: 2 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { r: { beginAtZero: true, max: 100 } } }
+        });
+
+        // 债务与自给率对比
+        new Chart(document.getElementById('debtCompareChart'), {
+            type: 'bar',
+            data: {
+                labels: provinceData.names,
+                datasets: [
+                    { label: '债务余额（亿元）', data: provinceData.debt, backgroundColor: 'rgba(231, 76, 60, 0.7)', yAxisID: 'y' },
+                    { label: '财政自给率（%）', data: provinceData.selfSufficiency, backgroundColor: 'rgba(46, 204, 113, 0.7)', yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { type: 'linear', display: true, position: 'left', title: { display: true, text: '债务余额（亿元）' } },
+                    y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: '财政自给率（%）' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
