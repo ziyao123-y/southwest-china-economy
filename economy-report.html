@@ -879,6 +879,10 @@ function switchView(mode) {
     cardList.classList.add('active');
     document.getElementById('viewCard').classList.add('active');
     document.getElementById('viewTable').classList.remove('active');
+    // 卡片视图默认按一般公共预算收入降序排列
+    sortCol = '一般公共预算收入';
+    sortDir = 'desc';
+    currentPage = 1;
   } else {
     tableWrap.style.display = 'block';
     cardList.classList.remove('active');
