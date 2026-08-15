@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>云贵桂三省2025年区域经济数据分析</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: #f0f2f5;
+  color: #1a1a2e;
+  line-height: 1.6;
+}
+.container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 40px 30px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(102,126,234,0.3);
+}
+.header h1 { font-size: 28px; margin-bottom: 8px; }
+.header p { font-size: 14px; opacity: 0.9; }
+.header .meta { font-size: 12px; opacity: 0.7; margin-top: 8px; }
+
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 32px 0 16px;
+  padding-left: 12px;
+  border-left: 4px solid #667eea;
+}
+
+/* Province Summary Cards */
+.province-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.prov-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border-top: 4px solid #667eea;
+}
+.prov-card.yn { border-top-color: #e74c3c; }
+.prov-card.gx { border-top-color: #27ae60; }
+.prov-card.gz { border-top-color: #f39c12; }
+.prov-card h3 { font-size: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.prov-card .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #f0f2f5; color: #666; }
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.metric-item { padding: 10px; background: #f8f9fa; border-radius: 8px; }
+.metric-item .label { font-size: 12px; color: #888; margin-bottom: 4px; }
+.metric-item .value { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+.metric-item .value .unit { font-size: 12px; font-weight: 400; color: #999; }
+.metric-item.highlight .value { color: #e74c3c; }
+.metric-item.highlight-green .value { color: #27ae60; }
+
+/* Comparison Charts */
+.chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.chart-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.chart-box h4 { font-size: 15px; margin-bottom: 16px; color: #333; }
+.chart-container { position: relative; height: 300px; }
+
+/* Analysis Section */
+.analysis-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.analysis-section h3 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f2f5;
+}
+.analysis-section h4 {
+  font-size: 15px;
+  margin: 20px 0 12px;
+  color: #555;
+}
+.analysis-section p, .analysis-section li {
+  font-size: 14px;
+  color: #444;
+  line-height: 1.8;
+}
+.analysis-section ul, .analysis-section ol {
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+.analysis-section .highlight { color: #e74c3c; font-weight: 600; }
+.analysis-section .highlight-green { color: #27ae60; font-weight: 600; }
+.analysis-section .highlight-blue { color: #3498db; font-weight: 600; }
+
+/* Ranking Tables */
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.ranking-table th {
+  background: #f8f9fa;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 2px solid #e0e0e0;
+  white-space: nowrap;
+}
+.ranking-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  white-space: nowrap;
+}
+.ranking-table tr:hover { background: #f8f9fa; }
+.rank-num {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: #ccc;
+}
+.rank-1 { background: #e74c3c; }
+.rank-2 { background: #e67e22; }
+.rank-3 { background: #f1c40f; }
+
+/* Interactive Table */
+.filter-bar {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+.filter-group { display: flex; align-items: center; gap: 8px; }
+.filter-group label { font-size: 13px; color: #666; font-weight: 600; white-space: nowrap; }
+.filter-group select, .filter-group input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.filter-group select:focus, .filter-group input:focus { border-color: #667eea; }
+.filter-group select { min-width: 140px; }
+.filter-group input { min-width: 200px; }
+
+.prov-tabs { display: flex; gap: 8px; }
+.prov-tab {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid #e0e0e0;
+  background: #fff;
+  color: #666;
+  transition: all 0.2s;
+}
+.prov-tab.active { background: #667eea; color: #fff; border-color: #667eea; }
+.prov-tab:hover:not(.active) { border-color: #667eea; color: #667eea; }
+
+.data-table-wrap {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  overflow-x: auto;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th {
+  background: #f8f9fa;
+  padding: 10px 12px;
+  text-align: right;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 2px solid #e0e0e0;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  position: sticky;
+  top: 0;
+}
+.data-table th:first-child, .data-table th:nth-child(2), .data-table th:nth-child(3), .data-table th:nth-child(4), .data-table th:nth-child(5) {
+  text-align: left;
+}
+.data-table th:hover { background: #eef0f3; }
+.data-table th .sort-icon { font-size: 10px; margin-left: 4px; opacity: 0.5; }
+.data-table th.sorted .sort-icon { opacity: 1; }
+.data-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: right;
+  white-space: nowrap;
+}
+.data-table td:first-child, .data-table td:nth-child(2), .data-table td:nth-child(3), .data-table td:nth-child(4), .data-table td:nth-child(5) {
+  text-align: left;
+}
+.data-table tr:hover { background: #f8f9fa; }
+.data-table .level-province { color: #e74c3c; font-weight: 600; }
+.data-table .level-city { color: #3498db; font-weight: 600; }
+.data-table .level-county { color: #666; }
+.data-table .level-other { color: #9b59b6; font-weight: 600; }
+.data-table .null-val { color: #ccc; }
+
+/* Sort Buttons */
+.sort-btns { display: inline-flex; gap: 2px; margin-left: 4px; vertical-align: middle; }
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background: #fff;
+  color: #999;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: all 0.15s;
+}
+.sort-btn:hover { border-color: #667eea; color: #667eea; background: #f0f0ff; }
+.sort-btn.active { background: #667eea; color: #fff; border-color: #667eea; }
+
+.table-footer {
+  padding: 12px 20px;
+  font-size: 13px;
+  color: #888;
+  text-align: right;
+}
+
+/* Two column layout for rankings */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .province-cards { grid-template-columns: 1fr; }
+  .chart-row { grid-template-columns: 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+  .filter-bar { flex-direction: column; align-items: stretch; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Header -->
+<div class="header">
+  <h1>云南、贵州、广西三省 2025年区域经济数据分析</h1>
+  <p>GDP · 一般公共预算收支 · 政府性基金收入 · 地方政府债务余额</p>
+  <p class="meta">数据来源：企业预警通 | 数据范围：省级+地级市+区县级共392条记录 | 生成时间：2025年</p>
+</div>
+
+<!-- Province Summary Cards -->
+<div class="section-title">三省经济总览</div>
+<div class="province-cards">
+  <div class="prov-card yn">
+    <h3>🔴 云南省 <span class="badge">16个地级行政区</span></h3>
+    <div class="metric-grid">
+      <div class="metric-item">
+        <div class="label">GDP</div>
+        <div class="value">32,765.78<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">一般公共预算收入</div>
+        <div class="value">2,243.33<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">一般公共预算支出</div>
+        <div class="value">7,002.20<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">政府性基金收入</div>
+        <div class="value">893.54<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">地方政府债务余额</div>
+        <div class="value">18,320.68<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item highlight">
+        <div class="label">财政自给率</div>
+        <div class="value">32.0<span class="unit">%</span></div>
+      </div>
+      <div class="metric-item highlight">
+        <div class="label">负债率(债务/GDP)</div>
+        <div class="value">55.9<span class="unit">%</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">土地财政依赖度</div>
+        <div class="value">39.8<span class="unit">%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prov-card gx">
+    <h3>🟢 广西壮族自治区 <span class="badge">14个地级行政区</span></h3>
+    <div class="metric-grid">
+      <div class="metric-item">
+        <div class="label">GDP</div>
+        <div class="value">29,727.45<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">一般公共预算收入</div>
+        <div class="value">1,922.05<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">一般公共预算支出</div>
+        <div class="value">6,742.18<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">政府性基金收入</div>
+        <div class="value">597.25<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">地方政府债务余额</div>
+        <div class="value">14,752.58<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item highlight">
+        <div class="label">财政自给率</div>
+        <div class="value">28.5<span class="unit">%</span></div>
+      </div>
+      <div class="metric-item highlight-green">
+        <div class="label">负债率(债务/GDP)</div>
+        <div class="value">49.6<span class="unit">%</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">土地财政依赖度</div>
+        <div class="value">31.1<span class="unit">%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prov-card gz">
+    <h3>🟡 贵州省 <span class="badge">9个地级行政区</span></h3>
+    <div class="metric-grid">
+      <div class="metric-item">
+        <div class="label">GDP</div>
+        <div class="value">23,562.17<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">一般公共预算收入</div>
+        <div class="value">2,223.23<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">一般公共预算支出</div>
+        <div class="value">6,556.39<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">政府性基金收入</div>
+        <div class="value">2,575.69<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item">
+        <div class="label">地方政府债务余额</div>
+        <div class="value">19,369.32<span class="unit">亿元</span></div>
+      </div>
+      <div class="metric-item highlight">
+        <div class="label">财政自给率</div>
+        <div class="value">33.9<span class="unit">%</span></div>
+      </div>
+      <div class="metric-item highlight">
+        <div class="label">负债率(债务/GDP)</div>
+        <div class="value">82.2<span class="unit">%</span></div>
+      </div>
+      <div class="metric-item highlight">
+        <div class="label">土地财政依赖度</div>
+        <div class="value">115.9<span class="unit">%</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Comparison Charts -->
+<div class="section-title">三省对比可视化</div>
+<div class="chart-row">
+  <div class="chart-box">
+    <h4>GDP与财政收入对比（亿元）</h4>
+    <div class="chart-container"><canvas id="chartGdpRev"></canvas></div>
+  </div>
+  <div class="chart-box">
+    <h4>关键比率指标对比（%）</h4>
+    <div class="chart-container"><canvas id="chartRatios"></canvas></div>
+  </div>
+</div>
+<div class="chart-row">
+  <div class="chart-box">
+    <h4>地方政府债务余额对比（亿元）</h4>
+    <div class="chart-container"><canvas id="chartDebt"></canvas></div>
+  </div>
+  <div class="chart-box">
+    <h4>财政收支对比（亿元）</h4>
+    <div class="chart-container"><canvas id="chartRevExp"></canvas></div>
+  </div>
+</div>
+
+<!-- Interactive Data Table -->
+<div class="section-title">交互式数据查询（支持省份/市/层级筛选与排序）</div>
+<div class="filter-bar">
+  <div class="prov-tabs">
+    <div class="prov-tab active" data-prov="all">全部</div>
+    <div class="prov-tab" data-prov="云南省">云南</div>
+    <div class="prov-tab" data-prov="广西壮族自治区">广西</div>
+    <div class="prov-tab" data-prov="贵州省">贵州</div>
+  </div>
+  <div class="filter-group">
+    <label>地级市:</label>
+    <select id="cityFilter">
+      <option value="all">全部地级市</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>层级:</label>
+    <select id="levelFilter">
+      <option value="all">全部层级</option>
+      <option value="province">省级</option>
+      <option value="city">市级</option>
+      <option value="county">区县级</option>
+      <option value="other">其他</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>搜索:</label>
+    <input type="text" id="searchInput" placeholder="输入地区名称搜索...">
+  </div>
+  <div class="filter-group">
+    <label>每页:</label>
+    <select id="pageSize">
+      <option value="20">20条</option>
+      <option value="50" selected>50条</option>
+      <option value="100">100条</option>
+      <option value="all">全部</option>
+    </select>
+  </div>
+</div>
+<div class="data-table-wrap">
+  <table class="data-table" id="dataTable">
+    <thead>
+      <tr>
+        <th data-col="序号">序号 <span class="sort-icon"></span></th>
+        <th data-col="地区名称">地区名称 <span class="sort-icon"></span></th>
+        <th data-col="省份">省份 <span class="sort-icon"></span></th>
+        <th data-col="地级市">地级市 <span class="sort-icon"></span></th>
+        <th data-col="区县">区县 <span class="sort-icon"></span></th>
+        <th data-col="层级">层级 <span class="sort-icon"></span></th>
+        <th data-col="GDP">GDP(亿元) <span class="sort-icon"></span><div class="sort-btns"><button class="sort-btn" onclick="event.stopPropagation();sortBy('GDP','asc')" title="升序">↑</button><button class="sort-btn" onclick="event.stopPropagation();sortBy('GDP','desc')" title="降序">↓</button></div></th>
+        <th data-col="一般公共预算收入">预算收入(亿元) <span class="sort-icon"></span><div class="sort-btns"><button class="sort-btn" onclick="event.stopPropagation();sortBy('一般公共预算收入','asc')" title="升序">↑</button><button class="sort-btn" onclick="event.stopPropagation();sortBy('一般公共预算收入','desc')" title="降序">↓</button></div></th>
+        <th data-col="一般公共预算支出">预算支出(亿元) <span class="sort-icon"></span><div class="sort-btns"><button class="sort-btn" onclick="event.stopPropagation();sortBy('一般公共预算支出','asc')" title="升序">↑</button><button class="sort-btn" onclick="event.stopPropagation();sortBy('一般公共预算支出','desc')" title="降序">↓</button></div></th>
+        <th data-col="政府性基金收入">基金收入(亿元) <span class="sort-icon"></span></th>
+        <th data-col="地方政府债务余额">债务余额(亿元) <span class="sort-icon"></span><div class="sort-btns"><button class="sort-btn" onclick="event.stopPropagation();sortBy('地方政府债务余额','asc')" title="升序">↑</button><button class="sort-btn" onclick="event.stopPropagation();sortBy('地方政府债务余额','desc')" title="降序">↓</button></div></th>
+        <th data-col="负债率">负债率(%) <span class="sort-icon"></span><div class="sort-btns"><button class="sort-btn" onclick="event.stopPropagation();sortBy('负债率','asc')" title="升序">↑</button><button class="sort-btn" onclick="event.stopPropagation();sortBy('负债率','desc')" title="降序">↓</button></div></th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+<div class="table-footer" id="tableFooter"></div>
+
+<!-- Yunnan Analysis -->
+<div class="section-title">云南省经济分析</div>
+<div class="analysis-section">
+  <h3>🔴 云南省 — 西南门户，经济体量最大但财政承压</h3>
+  
+  <h4>一、总体经济概况</h4>
+  <p>云南省2025年GDP达 <span class="highlight-blue">32,765.78亿元</span>，在三省中排名第一，一般公共预算收入 <span class="highlight-blue">2,243.33亿元</span>，同样位列三省之首。但一般公共预算支出高达 7,002.20亿元，财政自给率仅为 <span class="highlight">32.0%</span>，意味着近七成支出依赖中央转移支付。地方政府债务余额 18,320.68亿元，负债率 <span class="highlight">55.9%</span>，债务压力较大但尚在可控范围。</p>
+
+  <h4>二、地级市经济排名（GDP Top 10）</h4>
+  <table class="ranking-table">
+    <thead><tr><th>排名</th><th>城市</th><th>GDP(亿元)</th><th>预算收入(亿元)</th><th>预算支出(亿元)</th><th>债务余额(亿元)</th><th>负债率(%)</th></tr></thead>
+    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>昆明市</td><td>8637.45</td><td>575.0</td><td>843.47</td><td>3132.1</td><td>36.3</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>曲靖市</td><td>3777.6</td><td>164.21</td><td>526.45</td><td>1183.29</td><td>31.3</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>红河哈尼族彝族自治州</td><td>3154.52</td><td>153.95</td><td>513.49</td><td>1157.23</td><td>36.7</td></tr><tr><td><span class="rank-num ">4</span></td><td>玉溪市</td><td>2688.3</td><td>148.21</td><td>300.55</td><td>1003.15</td><td>37.3</td></tr><tr><td><span class="rank-num ">5</span></td><td>昭通市</td><td>2103.4</td><td>120.19</td><td>600.0</td><td>1405.11</td><td>66.8</td></tr><tr><td><span class="rank-num ">6</span></td><td>大理白族自治州</td><td>2087.51</td><td>108.02</td><td>372.3</td><td>945.76</td><td>45.3</td></tr><tr><td><span class="rank-num ">7</span></td><td>楚雄彝族自治州</td><td>2040.17</td><td>107.2</td><td>320.11</td><td>801.85</td><td>39.3</td></tr><tr><td><span class="rank-num ">8</span></td><td>文山壮族苗族自治州</td><td>1632.64</td><td>74.12</td><td>381.87</td><td>1018.95</td><td>62.4</td></tr><tr><td><span class="rank-num ">9</span></td><td>保山市</td><td>1347.01</td><td>65.42</td><td>261.71</td><td>990.77</td><td>73.6</td></tr><tr><td><span class="rank-num ">10</span></td><td>普洱市</td><td>1252.4</td><td>62.57</td><td>306.28</td><td>707.36</td><td>56.5</td></tr></tbody></table>
+
+  <h4>三、区县经济亮点（GDP Top 10）</h4>
+  <table class="ranking-table">
+    <thead><tr><th>排名</th><th>区县</th><th>所属地级市</th><th>GDP(亿元)</th><th>预算收入(亿元)</th><th>债务余额(亿元)</th></tr></thead>
+    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>官渡区</td><td>昆明市</td><td>1628.0</td><td>38.34</td><td>123.42</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>五华区</td><td>昆明市</td><td>1476.37</td><td>31.16</td><td>55.45</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>盘龙区</td><td>昆明市</td><td>1301.61</td><td>31.67</td><td>135.16</td></tr><tr><td><span class="rank-num ">4</span></td><td>麒麟区</td><td>曲靖市</td><td>1192.24</td><td>18.95</td><td>150.54</td></tr><tr><td><span class="rank-num ">5</span></td><td>西山区</td><td>昆明市</td><td>1160.24</td><td>32.07</td><td>70.17</td></tr><tr><td><span class="rank-num ">6</span></td><td>红塔区</td><td>玉溪市</td><td>1131.15</td><td>17.04</td><td>105.82</td></tr><tr><td><span class="rank-num ">7</span></td><td>安宁市</td><td>昆明市</td><td>820.54</td><td>47.59</td><td>200.26</td></tr><tr><td><span class="rank-num ">8</span></td><td>呈贡区</td><td>昆明市</td><td>752.01</td><td>24.84</td><td>111.17</td></tr><tr><td><span class="rank-num ">9</span></td><td>楚雄市</td><td>楚雄彝族自治州</td><td>725.01</td><td>35.17</td><td>173.26</td></tr><tr><td><span class="rank-num ">10</span></td><td>大理市</td><td>大理白族自治州</td><td>632.88</td><td>33.19</td><td>250.41</td></tr></tbody></table>
+
+  <h4>四、核心发现</h4>
+  <ul>
+    <li><span class="highlight-blue">昆明一城独大</span>：昆明市GDP 8,637亿元，占全省GDP的 26.4%，是第二名曲靖市的 2.3倍，经济首位度极高。</li>
+    <li><span class="highlight">财政自给率偏低</span>：全省财政自给率仅 32.0%，大部分地市自给率不足30%，高度依赖转移支付维持运转。</li>
+    <li><span class="highlight">债务规模大</span>：地方政府债务余额 18,321亿元，负债率 55.9%，昆明市债务余额超3100亿元，是全省债务最集中的城市。</li>
+    <li>土地财政依赖度 39.8%，政府性基金收入 894亿元，在三省中居中，反映出云南土地市场相对平淡。</li>
+    <li>县域经济分化严重：GDP最高的县与最低的县差距可达数十倍，边境地区（怒江、迪庆）经济体量极小。</li>
+  </ul>
+</div>
+
+<!-- Guangxi Analysis -->
+<div class="section-title">广西壮族自治区经济分析</div>
+<div class="analysis-section">
+  <h3>🟢 广西壮族自治区 — 财政最稳健，债务风险最低</h3>
+  
+  <h4>一、总体经济概况</h4>
+  <p>广西2025年GDP达 <span class="highlight-blue">29,727.45亿元</span>，三省排名第二，一般公共预算收入 1,922.05亿元。值得关注的是，广西的负债率仅为 <span class="highlight-green">49.6%</span>，是三省中最低的；土地财政依赖度 31.1%%也为最低，财政结构相对稳健。但财政自给率 <span class="highlight">28.5%</span>为三省最低，支出高度依赖转移支付。</p>
+
+  <h4>二、地级市经济排名（GDP Top 10）</h4>
+  <table class="ranking-table">
+    <thead><tr><th>排名</th><th>城市</th><th>GDP(亿元)</th><th>预算收入(亿元)</th><th>预算支出(亿元)</th><th>债务余额(亿元)</th><th>负债率(%)</th></tr></thead>
+    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>南宁市</td><td>6212.46</td><td>381.7</td><td>822.34</td><td>1784.79</td><td>28.7</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>柳州市</td><td>3096.91</td><td>167.0</td><td>479.42</td><td>1157.33</td><td>37.4</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>桂林市</td><td>2579.53</td><td>150.65</td><td>537.59</td><td>1075.41</td><td>41.7</td></tr><tr><td><span class="rank-num ">4</span></td><td>玉林市</td><td>2437.44</td><td>96.91</td><td>454.44</td><td>871.28</td><td>35.7</td></tr><tr><td><span class="rank-num ">5</span></td><td>百色市</td><td>2101.34</td><td>165.18</td><td>495.41</td><td>926.68</td><td>44.1</td></tr><tr><td><span class="rank-num ">6</span></td><td>北海市</td><td>1974.04</td><td>81.31</td><td>214.82</td><td>426.44</td><td>21.6</td></tr><tr><td><span class="rank-num ">7</span></td><td>钦州市</td><td>1907.61</td><td>101.64</td><td>324.82</td><td>800.51</td><td>42.0</td></tr><tr><td><span class="rank-num ">8</span></td><td>梧州市</td><td>1719.79</td><td>85.93</td><td>289.72</td><td>667.54</td><td>38.8</td></tr><tr><td><span class="rank-num ">9</span></td><td>贵港市</td><td>1628.44</td><td>60.78</td><td>346.33</td><td>608.25</td><td>37.4</td></tr><tr><td><span class="rank-num ">10</span></td><td>河池市</td><td>1453.62</td><td>58.84</td><td>435.23</td><td>633.06</td><td>43.6</td></tr></tbody></table>
+
+  <h4>三、区县经济亮点（GDP Top 10）</h4>
+  <table class="ranking-table">
+    <thead><tr><th>排名</th><th>区县</th><th>所属地级市</th><th>GDP(亿元)</th><th>预算收入(亿元)</th><th>债务余额(亿元)</th></tr></thead>
+    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>青秀区</td><td>南宁市</td><td>1597.02</td><td>32.95</td><td>26.26</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>西乡塘区</td><td>南宁市</td><td>1091.26</td><td>12.0</td><td>20.98</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>港口区</td><td>防城港市</td><td>803.83</td><td>9.28</td><td>31.52</td></tr><tr><td><span class="rank-num ">4</span></td><td>江南区</td><td>南宁市</td><td>705.32</td><td>8.04</td><td>11.57</td></tr><tr><td><span class="rank-num ">5</span></td><td>海城区</td><td>北海市</td><td>659.93</td><td>5.99</td><td>11.45</td></tr><tr><td><span class="rank-num ">6</span></td><td>玉州区</td><td>玉林市</td><td>632.92</td><td>7.77</td><td>47.5</td></tr><tr><td><span class="rank-num ">7</span></td><td>铁山港区</td><td>北海市</td><td>595.16</td><td>4.33</td><td>7.51</td></tr><tr><td><span class="rank-num ">8</span></td><td>鱼峰区</td><td>柳州市</td><td>582.04</td><td>5.75</td><td>6.31</td></tr><tr><td><span class="rank-num ">9</span></td><td>良庆区</td><td>南宁市</td><td>543.41</td><td>17.15</td><td>23.11</td></tr><tr><td><span class="rank-num ">10</span></td><td>柳南区</td><td>柳州市</td><td>525.97</td><td>9.21</td><td>5.46</td></tr></tbody></table>
+
+  <h4>四、核心发现</h4>
+  <ul>
+    <li><span class="highlight-green">债务风险最低</span>：负债率 49.6%，远低于贵州的 82.2%，政府债务余额 14,753亿元为三省最低，财政可持续性最好。</li>
+    <li><span class="highlight-blue">南宁引领</span>：南宁市GDP 6,212亿元，占全区 20.9%，柳州、桂林分列二三位，形成"南柳桂"经济三角。</li>
+    <li><span class="highlight">财政自给率最低</span>：28.5%的财政自给率意味着超过七成支出需中央补助，转移支付依赖度在三省中最高。</li>
+    <li>土地财政依赖度仅 31.1%，政府性基金收入 597亿元为三省最低，表明广西土地出让收入规模较小，但也意味着对土地财政的依赖风险较低。</li>
+    <li>沿海优势明显：北海、防城港、钦州三市虽经济体量不大，但作为西部陆海新通道的重要节点，具有独特的区位优势。</li>
+  </ul>
+</div>
+
+<!-- Guizhou Analysis -->
+<div class="section-title">贵州省经济分析</div>
+<div class="analysis-section">
+  <h3>🟡 贵州省 — 债务风险最高，土地财政依赖度突出</h3>
+  
+  <h4>一、总体经济概况</h4>
+  <p>贵州省2025年GDP为 <span class="highlight-blue">23,562.17亿元</span>，三省中最小。但一般公共预算收入 2,223.23亿元，与云南相近，财政自给率 33.9%甚至略高于云南。核心问题在于：<span class="highlight">负债率高达 82.2%</span>，远超云南和广西；<span class="highlight">土地财政依赖度高达 115.9%</span>，政府性基金收入 2,576亿元甚至超过一般公共预算收入，反映出贵州财政对土地出让收入的高度依赖。</p>
+
+  <h4>二、地级市经济排名（GDP Top 10）</h4>
+  <table class="ranking-table">
+    <thead><tr><th>排名</th><th>城市</th><th>GDP(亿元)</th><th>预算收入(亿元)</th><th>预算支出(亿元)</th><th>债务余额(亿元)</th><th>负债率(%)</th></tr></thead>
+    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>贵阳市</td><td>6038.15</td><td>490.76</td><td>814.5</td><td>4329.42</td><td>71.7</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>遵义市</td><td>5206.12</td><td>358.0</td><td>870.41</td><td>3052.42</td><td>58.6</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>毕节市</td><td>2541.14</td><td>140.04</td><td>754.37</td><td>1784.17</td><td>70.2</td></tr><tr><td><span class="rank-num ">4</span></td><td>黔南布依族苗族自治州</td><td>2008.49</td><td>133.29</td><td>503.66</td><td>1705.25</td><td>84.9</td></tr><tr><td><span class="rank-num ">5</span></td><td>六盘水市</td><td>1777.75</td><td>117.43</td><td>363.11</td><td>1267.35</td><td>71.3</td></tr><tr><td><span class="rank-num ">6</span></td><td>铜仁市</td><td>1722.66</td><td>77.03</td><td>504.86</td><td>1517.61</td><td>88.1</td></tr><tr><td><span class="rank-num ">7</span></td><td>黔西南布依族苗族自治州</td><td>1535.28</td><td>97.22</td><td>419.56</td><td>1215.5</td><td>79.2</td></tr><tr><td><span class="rank-num ">8</span></td><td>黔东南苗族侗族自治州</td><td>1500.24</td><td>83.67</td><td>556.54</td><td>1139.12</td><td>75.9</td></tr><tr><td><span class="rank-num ">9</span></td><td>安顺市</td><td>1232.35</td><td>68.31</td><td>302.85</td><td>844.8</td><td>68.6</td></tr><tr><td><span class="rank-num ">10</span></td><td>贵阳经济技术开发区</td><td>—</td><td>14.04</td><td>19.59</td><td>128.8</td><td>—</td></tr></tbody></table>
+
+  <h4>三、区县经济亮点（GDP Top 10）</h4>
+  <table class="ranking-table">
+    <thead><tr><th>排名</th><th>区县</th><th>所属地级市</th><th>GDP(亿元)</th><th>预算收入(亿元)</th><th>债务余额(亿元)</th></tr></thead>
+    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>仁怀市</td><td>遵义市</td><td>2026.43</td><td>130.53</td><td>144.14</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>南明区</td><td>贵阳市</td><td>1207.04</td><td>26.11</td><td>161.16</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>云岩区</td><td>贵阳市</td><td>1126.69</td><td>31.6</td><td>86.0</td></tr><tr><td><span class="rank-num ">4</span></td><td>花溪区</td><td>贵阳市</td><td>1023.71</td><td>13.85</td><td>451.99</td></tr><tr><td><span class="rank-num ">5</span></td><td>观山湖区</td><td>贵阳市</td><td>887.64</td><td>49.37</td><td>392.28</td></tr><tr><td><span class="rank-num ">6</span></td><td>盘州市</td><td>六盘水市</td><td>759.57</td><td>48.78</td><td>315.01</td></tr><tr><td><span class="rank-num ">7</span></td><td>七星关区</td><td>毕节市</td><td>619.31</td><td>25.59</td><td>398.0</td></tr><tr><td><span class="rank-num ">8</span></td><td>兴义市</td><td>黔西南布依族苗族自治州</td><td>588.49</td><td>33.02</td><td>458.28</td></tr><tr><td><span class="rank-num ">9</span></td><td>汇川区</td><td>遵义市</td><td>560.02</td><td>20.29</td><td>261.96</td></tr><tr><td><span class="rank-num ">10</span></td><td>遵义经济技术开发区</td><td>遵义市</td><td>560.02</td><td>20.29</td><td>261.96</td></tr></tbody></table>
+
+  <h4>四、核心发现</h4>
+  <ul>
+    <li><span class="highlight">债务风险最为突出</span>：负债率 82.2%，为三省最高，地方政府债务余额 19,369亿元超过云南，而GDP仅为云南的 71.9%。贵阳市债务余额超4300亿元，遵义市超3000亿元。</li>
+    <li><span class="highlight">土地财政依赖度畸高</span>：政府性基金收入 2,576亿元，是一般公共预算收入的 1.16倍，依赖度 115.9%远超云南和广西。一旦土地市场降温，财政将面临巨大冲击。</li>
+    <li><span class="highlight-blue">贵阳遵义双核驱动</span>：贵阳GDP 6,038亿元、遵义 5,206亿元，两市合计占全省 47.7%，经济集中度高。</li>
+    <li>仁怀市一枝独秀：依托茅台集团，仁怀市GDP达 2,026亿元，是贵州最强的县级经济体，预算收入 130.53亿元，超过部分地级市。</li>
+    <li>财政自给率 33.9%在三省中最高，但考虑到其极高的土地财政依赖度，实际财政脆弱性可能被低估。</li>
+  </ul>
+</div>
+
+<!-- Three Province Comparison Summary -->
+<div class="section-title">三省综合对比与总结</div>
+<div class="analysis-section">
+  <h3>横向对比总结</h3>
+  <table class="ranking-table">
+    <thead><tr><th>指标</th><th>🔴 云南省</th><th>🟢 广西壮族自治区</th><th>🟡 贵州省</th><th>三省对比</th></tr></thead>
+    <tbody>
+      <tr><td>GDP(亿元)</td><td>32,765.78</td><td>29,727.45</td><td>23,562.17</td><td>云南 > 广西 > 贵州</td></tr>
+      <tr><td>一般公共预算收入(亿元)</td><td>2,243.33</td><td>1,922.05</td><td>2,223.23</td><td>云南 ≈ 贵州 > 广西</td></tr>
+      <tr><td>一般公共预算支出(亿元)</td><td>7,002.20</td><td>6,742.18</td><td>6,556.39</td><td>云南 > 广西 > 贵州</td></tr>
+      <tr><td>政府性基金收入(亿元)</td><td>893.54</td><td>597.25</td><td>2,575.69</td><td>贵州 >> 云南 > 广西</td></tr>
+      <tr><td>地方政府债务余额(亿元)</td><td>18,320.68</td><td>14,752.58</td><td>19,369.32</td><td>贵州 > 云南 > 广西</td></tr>
+      <tr style="background:#fff3cd"><td><b>财政自给率(%)</b></td><td>32.0</td><td>28.5</td><td>33.9</td><td>贵州 > 云南 > 广西</td></tr>
+      <tr style="background:#f8d7da"><td><b>负债率(%)</b></td><td>55.9</td><td>49.6</td><td>82.2</td><td>贵州 >> 云南 > 广西</td></tr>
+      <tr style="background:#f8d7da"><td><b>土地财政依赖度(%)</b></td><td>39.8</td><td>31.1</td><td>115.9</td><td>贵州 >> 云南 > 广西</td></tr>
+    </tbody>
+  </table>
+
+  <h4>核心结论</h4>
+  <ol>
+    <li><b>经济体量</b>：云南 > 广西 > 贵州。云南以3.28万亿GDP领先，贵州2.36万亿垫底。</li>
+    <li><b>财政稳健性</b>：广西最优，负债率最低（49.6%），土地财政依赖度最低（31.1%），但财政自给率也最低，高度依赖转移支付。</li>
+    <li><b>债务风险</b>：贵州最为严峻，负债率 82.2%远超警戒线（通常以60%为参考），且土地财政依赖度高达 115.9%，财政脆弱性极高。</li>
+    <li><b>区域分化</b>：三省均存在明显的"省会独大"现象——昆明占云南GDP的 26%，南宁占广西的 21%，贵阳+遵义占贵州的 48%。</li>
+    <li><b>县域经济</b>：贵州仁怀市（茅台）以 2,026亿元GDP成为三省最强县级经济体；云南官渡区、广西青秀区分别为各自省份的县域经济龙头。</li>
+  </ol>
+</div>
+
+</div>
+
+<script>
+const allData = {"all_records": [{"序号": 1, "地区名称": "云南省", "地区代码": 530000, "省份": "云南省", "地级市": "", "区县": "", "年份": 2025, "GDP": 32765.78, "一般公共预算收入": 2243.33, "一般公共预算支出": 7002.2, "政府性基金收入": 893.54, "地方政府债务余额": 18320.68, "层级": "province"}, {"序号": 2, "地区名称": "广西壮族自治区", "地区代码": 450000, "省份": "广西壮族自治区", "地级市": "", "区县": "", "年份": 2025, "GDP": 29727.45, "一般公共预算收入": 1922.05, "一般公共预算支出": 6742.18, "政府性基金收入": 597.25, "地方政府债务余额": 14752.58, "层级": "province"}, {"序号": 3, "地区名称": "贵州省", "地区代码": 520000, "省份": "贵州省", "地级市": "", "区县": "", "年份": 2025, "GDP": 23562.17, "一般公共预算收入": 2223.23, "一般公共预算支出": 6556.39, "政府性基金收入": 2575.69, "地方政府债务余额": 19369.32, "层级": "province"}, {"序号": 4, "地区名称": "昆明市", "地区代码": 530100, "省份": "云南省", "地级市": "昆明市", "区县": "", "年份": 2025, "GDP": 8637.45, "一般公共预算收入": 575.0, "一般公共预算支出": 843.47, "政府性基金收入": 410.28, "地方政府债务余额": 3132.1, "层级": "city"}, {"序号": 5, "地区名称": "南宁市", "地区代码": 450100, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "", "年份": 2025, "GDP": 6212.46, "一般公共预算收入": 381.7, "一般公共预算支出": 822.34, "政府性基金收入": 133.57, "地方政府债务余额": 1784.79, "层级": "city"}, {"序号": 6, "地区名称": "贵阳市", "地区代码": 520100, "省份": "贵州省", "地级市": "贵阳市", "区县": "", "年份": 2025, "GDP": 6038.15, "一般公共预算收入": 490.76, "一般公共预算支出": 814.5, "政府性基金收入": 809.02, "地方政府债务余额": 4329.42, "层级": "city"}, {"序号": 7, "地区名称": "遵义市", "地区代码": 520300, "省份": "贵州省", "地级市": "遵义市", "区县": "", "年份": 2025, "GDP": 5206.12, "一般公共预算收入": 358.0, "一般公共预算支出": 870.41, "政府性基金收入": 350.65, "地方政府债务余额": 3052.42, "层级": "city"}, {"序号": 8, "地区名称": "曲靖市", "地区代码": 530300, "省份": "云南省", "地级市": "曲靖市", "区县": "", "年份": 2025, "GDP": 3777.6, "一般公共预算收入": 164.21, "一般公共预算支出": 526.45, "政府性基金收入": 37.78, "地方政府债务余额": 1183.29, "层级": "city"}, {"序号": 9, "地区名称": "红河哈尼族彝族自治州", "地区代码": 532500, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "", "年份": 2025, "GDP": 3154.52, "一般公共预算收入": 153.95, "一般公共预算支出": 513.49, "政府性基金收入": 75.95, "地方政府债务余额": 1157.23, "层级": "city"}, {"序号": 10, "地区名称": "柳州市", "地区代码": 450200, "省份": "广西壮族自治区", "地级市": "柳州市", "区县": "", "年份": 2025, "GDP": 3096.91, "一般公共预算收入": 167.0, "一般公共预算支出": 479.42, "政府性基金收入": 34.67, "地方政府债务余额": 1157.33, "层级": "city"}, {"序号": 11, "地区名称": "玉溪市", "地区代码": 530400, "省份": "云南省", "地级市": "玉溪市", "区县": "", "年份": 2025, "GDP": 2688.3, "一般公共预算收入": 148.21, "一般公共预算支出": 300.55, "政府性基金收入": 27.05, "地方政府债务余额": 1003.15, "层级": "city"}, {"序号": 12, "地区名称": "桂林市", "地区代码": 450300, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "", "年份": 2025, "GDP": 2579.53, "一般公共预算收入": 150.65, "一般公共预算支出": 537.59, "政府性基金收入": 33.27, "地方政府债务余额": 1075.41, "层级": "city"}, {"序号": 13, "地区名称": "毕节市", "地区代码": 520500, "省份": "贵州省", "地级市": "毕节市", "区县": "", "年份": 2025, "GDP": 2541.14, "一般公共预算收入": 140.04, "一般公共预算支出": 754.37, "政府性基金收入": 177.28, "地方政府债务余额": 1784.17, "层级": "city"}, {"序号": 14, "地区名称": "玉林市", "地区代码": 450900, "省份": "广西壮族自治区", "地级市": "玉林市", "区县": "", "年份": 2025, "GDP": 2437.44, "一般公共预算收入": 96.91, "一般公共预算支出": 454.44, "政府性基金收入": 42.8, "地方政府债务余额": 871.28, "层级": "city"}, {"序号": 15, "地区名称": "昭通市", "地区代码": 530600, "省份": "云南省", "地级市": "昭通市", "区县": "", "年份": 2025, "GDP": 2103.4, "一般公共预算收入": 120.19, "一般公共预算支出": 600.0, "政府性基金收入": 40.3, "地方政府债务余额": 1405.11, "层级": "city"}, {"序号": 16, "地区名称": "百色市", "地区代码": 451000, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "", "年份": 2025, "GDP": 2101.34, "一般公共预算收入": 165.18, "一般公共预算支出": 495.41, "政府性基金收入": 26.39, "地方政府债务余额": 926.68, "层级": "city"}, {"序号": 17, "地区名称": "大理白族自治州", "地区代码": 532900, "省份": "云南省", "地级市": "大理白族自治州", "区县": "", "年份": 2025, "GDP": 2087.51, "一般公共预算收入": 108.02, "一般公共预算支出": 372.3, "政府性基金收入": 15.94, "地方政府债务余额": 945.76, "层级": "city"}, {"序号": 18, "地区名称": "楚雄彝族自治州", "地区代码": 532300, "省份": "云南省", "地级市": "楚雄彝族自治州", "区县": "", "年份": 2025, "GDP": 2040.17, "一般公共预算收入": 107.2, "一般公共预算支出": 320.11, "政府性基金收入": 57.31, "地方政府债务余额": 801.85, "层级": "city"}, {"序号": 19, "地区名称": "仁怀市", "地区代码": 520382, "省份": "贵州省", "地级市": "遵义市", "区县": "仁怀市", "年份": 2025, "GDP": 2026.43, "一般公共预算收入": 130.53, "一般公共预算支出": 140.92, "政府性基金收入": 37.82, "地方政府债务余额": 144.14, "层级": "county"}, {"序号": 20, "地区名称": "黔南布依族苗族自治州", "地区代码": 522700, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "", "年份": 2025, "GDP": 2008.49, "一般公共预算收入": 133.29, "一般公共预算支出": 503.66, "政府性基金收入": 328.14, "地方政府债务余额": 1705.25, "层级": "city"}, {"序号": 21, "地区名称": "北海市", "地区代码": 450500, "省份": "广西壮族自治区", "地级市": "北海市", "区县": "", "年份": 2025, "GDP": 1974.04, "一般公共预算收入": 81.31, "一般公共预算支出": 214.82, "政府性基金收入": 30.45, "地方政府债务余额": 426.44, "层级": "city"}, {"序号": 22, "地区名称": "钦州市", "地区代码": 450700, "省份": "广西壮族自治区", "地级市": "钦州市", "区县": "", "年份": 2025, "GDP": 1907.61, "一般公共预算收入": 101.64, "一般公共预算支出": 324.82, "政府性基金收入": 65.0, "地方政府债务余额": 800.51, "层级": "city"}, {"序号": 23, "地区名称": "六盘水市", "地区代码": 520200, "省份": "贵州省", "地级市": "六盘水市", "区县": "", "年份": 2025, "GDP": 1777.75, "一般公共预算收入": 117.43, "一般公共预算支出": 363.11, "政府性基金收入": 230.7, "地方政府债务余额": 1267.35, "层级": "city"}, {"序号": 24, "地区名称": "铜仁市", "地区代码": 520600, "省份": "贵州省", "地级市": "铜仁市", "区县": "", "年份": 2025, "GDP": 1722.66, "一般公共预算收入": 77.03, "一般公共预算支出": 504.86, "政府性基金收入": 215.02, "地方政府债务余额": 1517.61, "层级": "city"}, {"序号": 25, "地区名称": "梧州市", "地区代码": 450400, "省份": "广西壮族自治区", "地级市": "梧州市", "区县": "", "年份": 2025, "GDP": 1719.79, "一般公共预算收入": 85.93, "一般公共预算支出": 289.72, "政府性基金收入": 38.9, "地方政府债务余额": 667.54, "层级": "city"}, {"序号": 26, "地区名称": "文山壮族苗族自治州", "地区代码": 532600, "省份": "云南省", "地级市": "文山壮族苗族自治州", "区县": "", "年份": 2025, "GDP": 1632.64, "一般公共预算收入": 74.12, "一般公共预算支出": 381.87, "政府性基金收入": 30.54, "地方政府债务余额": 1018.95, "层级": "city"}, {"序号": 27, "地区名称": "贵港市", "地区代码": 450800, "省份": "广西壮族自治区", "地级市": "贵港市", "区县": "", "年份": 2025, "GDP": 1628.44, "一般公共预算收入": 60.78, "一般公共预算支出": 346.33, "政府性基金收入": 18.22, "地方政府债务余额": 608.25, "层级": "city"}, {"序号": 28, "地区名称": "官渡区", "地区代码": 530111, "省份": "云南省", "地级市": "昆明市", "区县": "官渡区", "年份": 2025, "GDP": 1628.0, "一般公共预算收入": 38.34, "一般公共预算支出": 59.87, "政府性基金收入": 1.39, "地方政府债务余额": 123.42, "层级": "county"}, {"序号": 29, "地区名称": "青秀区", "地区代码": 450103, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "青秀区", "年份": 2025, "GDP": 1597.02, "一般公共预算收入": 32.95, "一般公共预算支出": 48.59, "政府性基金收入": 0.51, "地方政府债务余额": 26.26, "层级": "county"}, {"序号": 30, "地区名称": "黔西南布依族苗族自治州", "地区代码": 522300, "省份": "贵州省", "地级市": "黔西南布依族苗族自治州", "区县": "", "年份": 2025, "GDP": 1535.28, "一般公共预算收入": 97.22, "一般公共预算支出": 419.56, "政府性基金收入": 205.74, "地方政府债务余额": 1215.5, "层级": "city"}, {"序号": 31, "地区名称": "黔东南苗族侗族自治州", "地区代码": 522600, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "", "年份": 2025, "GDP": 1500.24, "一般公共预算收入": 83.67, "一般公共预算支出": 556.54, "政府性基金收入": 125.23, "地方政府债务余额": 1139.12, "层级": "city"}, {"序号": 32, "地区名称": "五华区", "地区代码": 530102, "省份": "云南省", "地级市": "昆明市", "区县": "五华区", "年份": 2025, "GDP": 1476.37, "一般公共预算收入": 31.16, "一般公共预算支出": 48.32, "政府性基金收入": 1.22, "地方政府债务余额": 55.45, "层级": "county"}, {"序号": 33, "地区名称": "河池市", "地区代码": 451200, "省份": "广西壮族自治区", "地级市": "河池市", "区县": "", "年份": 2025, "GDP": 1453.62, "一般公共预算收入": 58.84, "一般公共预算支出": 435.23, "政府性基金收入": 16.0, "地方政府债务余额": 633.06, "层级": "city"}, {"序号": 34, "地区名称": "崇左市", "地区代码": 451400, "省份": "广西壮族自治区", "地级市": "崇左市", "区县": "", "年份": 2025, "GDP": 1358.64, "一般公共预算收入": 62.4, "一般公共预算支出": 301.56, "政府性基金收入": 25.57, "地方政府债务余额": 646.63, "层级": "city"}, {"序号": 35, "地区名称": "保山市", "地区代码": 530500, "省份": "云南省", "地级市": "保山市", "区县": "", "年份": 2025, "GDP": 1347.01, "一般公共预算收入": 65.42, "一般公共预算支出": 261.71, "政府性基金收入": 31.64, "地方政府债务余额": 990.77, "层级": "city"}, {"序号": 36, "地区名称": "盘龙区", "地区代码": 530103, "省份": "云南省", "地级市": "昆明市", "区县": "盘龙区", "年份": 2025, "GDP": 1301.61, "一般公共预算收入": 31.67, "一般公共预算支出": 49.9, "政府性基金收入": 3.87, "地方政府债务余额": 135.16, "层级": "county"}, {"序号": 37, "地区名称": "普洱市", "地区代码": 530800, "省份": "云南省", "地级市": "普洱市", "区县": "", "年份": 2025, "GDP": 1252.4, "一般公共预算收入": 62.57, "一般公共预算支出": 306.28, "政府性基金收入": 19.53, "地方政府债务余额": 707.36, "层级": "city"}, {"序号": 38, "地区名称": "安顺市", "地区代码": 520400, "省份": "贵州省", "地级市": "安顺市", "区县": "", "年份": 2025, "GDP": 1232.35, "一般公共预算收入": 68.31, "一般公共预算支出": 302.85, "政府性基金收入": 104.88, "地方政府债务余额": 844.8, "层级": "city"}, {"序号": 39, "地区名称": "南明区", "地区代码": 520102, "省份": "贵州省", "地级市": "贵阳市", "区县": "南明区", "年份": 2025, "GDP": 1207.04, "一般公共预算收入": 26.11, "一般公共预算支出": 49.83, "政府性基金收入": 10.49, "地方政府债务余额": 161.16, "层级": "county"}, {"序号": 40, "地区名称": "防城港市", "地区代码": 450600, "省份": "广西壮族自治区", "地级市": "防城港市", "区县": "", "年份": 2025, "GDP": 1201.26, "一般公共预算收入": 55.93, "一般公共预算支出": 163.2, "政府性基金收入": 17.9, "地方政府债务余额": 375.24, "层级": "city"}, {"序号": 41, "地区名称": "麒麟区", "地区代码": 530302, "省份": "云南省", "地级市": "曲靖市", "区县": "麒麟区", "年份": 2025, "GDP": 1192.24, "一般公共预算收入": 18.95, "一般公共预算支出": 38.66, "政府性基金收入": 6.73, "地方政府债务余额": 150.54, "层级": "county"}, {"序号": 42, "地区名称": "西山区", "地区代码": 530112, "省份": "云南省", "地级市": "昆明市", "区县": "西山区", "年份": 2025, "GDP": 1160.24, "一般公共预算收入": 32.07, "一般公共预算支出": 45.32, "政府性基金收入": 0.49, "地方政府债务余额": 70.17, "层级": "county"}, {"序号": 43, "地区名称": "红塔区", "地区代码": 530402, "省份": "云南省", "地级市": "玉溪市", "区县": "红塔区", "年份": 2025, "GDP": 1131.15, "一般公共预算收入": 17.04, "一般公共预算支出": 37.35, "政府性基金收入": 5.94, "地方政府债务余额": 105.82, "层级": "county"}, {"序号": 44, "地区名称": "临沧市", "地区代码": 530900, "省份": "云南省", "地级市": "临沧市", "区县": "", "年份": 2025, "GDP": 1127.75, "一般公共预算收入": 51.54, "一般公共预算支出": 266.52, "政府性基金收入": 15.11, "地方政府债务余额": 689.07, "层级": "city"}, {"序号": 45, "地区名称": "云岩区", "地区代码": 520103, "省份": "贵州省", "地级市": "贵阳市", "区县": "云岩区", "年份": 2025, "GDP": 1126.69, "一般公共预算收入": 31.6, "一般公共预算支出": 61.58, "政府性基金收入": 24.31, "地方政府债务余额": 86.0, "层级": "county"}, {"序号": 46, "地区名称": "西乡塘区", "地区代码": 450107, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "西乡塘区", "年份": 2025, "GDP": 1091.26, "一般公共预算收入": 12.0, "一般公共预算支出": 41.32, "政府性基金收入": 0.18, "地方政府债务余额": 20.98, "层级": "county"}, {"序号": 47, "地区名称": "来宾市", "地区代码": 451300, "省份": "广西壮族自治区", "地级市": "来宾市", "区县": "", "年份": 2025, "GDP": 1049.66, "一般公共预算收入": 64.38, "一般公共预算支出": 245.29, "政府性基金收入": 23.62, "地方政府债务余额": 642.54, "层级": "city"}, {"序号": 48, "地区名称": "花溪区", "地区代码": 520111, "省份": "贵州省", "地级市": "贵阳市", "区县": "花溪区", "年份": 2025, "GDP": 1023.71, "一般公共预算收入": 13.85, "一般公共预算支出": 45.38, "政府性基金收入": 35.75, "地方政府债务余额": 451.99, "层级": "county"}, {"序号": 49, "地区名称": "贺州市", "地区代码": 451100, "省份": "广西壮族自治区", "地级市": "贺州市", "区县": "", "年份": 2025, "GDP": 1006.74, "一般公共预算收入": 48.7, "一般公共预算支出": 235.52, "政府性基金收入": 22.27, "地方政府债务余额": 501.5, "层级": "city"}, {"序号": 50, "地区名称": "西双版纳傣族自治州", "地区代码": 532800, "省份": "云南省", "地级市": "西双版纳傣族自治州", "区县": "", "年份": 2025, "GDP": 940.83, "一般公共预算收入": 39.92, "一般公共预算支出": 145.6, "政府性基金收入": 23.31, "地方政府债务余额": 340.34, "层级": "city"}, {"序号": 51, "地区名称": "观山湖区", "地区代码": 520115, "省份": "贵州省", "地级市": "贵阳市", "区县": "观山湖区", "年份": 2025, "GDP": 887.64, "一般公共预算收入": 49.37, "一般公共预算支出": 83.04, "政府性基金收入": 10.61, "地方政府债务余额": 392.28, "层级": "county"}, {"序号": 52, "地区名称": "安宁市", "地区代码": 530181, "省份": "云南省", "地级市": "昆明市", "区县": "安宁市", "年份": 2025, "GDP": 820.54, "一般公共预算收入": 47.59, "一般公共预算支出": 46.62, "政府性基金收入": 3.76, "地方政府债务余额": 200.26, "层级": "county"}, {"序号": 53, "地区名称": "港口区", "地区代码": 450602, "省份": "广西壮族自治区", "地级市": "防城港市", "区县": "港口区", "年份": 2025, "GDP": 803.83, "一般公共预算收入": 9.28, "一般公共预算支出": 17.28, "政府性基金收入": 0.55, "地方政府债务余额": 31.52, "层级": "county"}, {"序号": 54, "地区名称": "盘州市", "地区代码": 520281, "省份": "贵州省", "地级市": "六盘水市", "区县": "盘州市", "年份": 2025, "GDP": 759.57, "一般公共预算收入": 48.78, "一般公共预算支出": 106.46, "政府性基金收入": 68.2, "地方政府债务余额": 315.01, "层级": "county"}, {"序号": 55, "地区名称": "呈贡区", "地区代码": 530114, "省份": "云南省", "地级市": "昆明市", "区县": "呈贡区", "年份": 2025, "GDP": 752.01, "一般公共预算收入": 24.84, "一般公共预算支出": 27.95, "政府性基金收入": 2.64, "地方政府债务余额": 111.17, "层级": "county"}, {"序号": 56, "地区名称": "丽江市", "地区代码": 530700, "省份": "云南省", "地级市": "丽江市", "区县": "", "年份": 2025, "GDP": 744.27, "一般公共预算收入": 56.78, "一般公共预算支出": 176.32, "政府性基金收入": 17.07, "地方政府债务余额": 478.08, "层级": "city"}, {"序号": 57, "地区名称": "楚雄市", "地区代码": 532301, "省份": "云南省", "地级市": "楚雄彝族自治州", "区县": "楚雄市", "年份": 2025, "GDP": 725.01, "一般公共预算收入": 35.17, "一般公共预算支出": 55.57, "政府性基金收入": 27.24, "地方政府债务余额": 173.26, "层级": "county"}, {"序号": 58, "地区名称": "江南区", "地区代码": 450105, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "江南区", "年份": 2025, "GDP": 705.32, "一般公共预算收入": 8.04, "一般公共预算支出": 38.01, "政府性基金收入": 0.15, "地方政府债务余额": 11.57, "层级": "county"}, {"序号": 59, "地区名称": "海城区", "地区代码": 450502, "省份": "广西壮族自治区", "地级市": "北海市", "区县": "海城区", "年份": 2025, "GDP": 659.93, "一般公共预算收入": 5.99, "一般公共预算支出": 18.15, "政府性基金收入": 0.11, "地方政府债务余额": 11.45, "层级": "county"}, {"序号": 60, "地区名称": "德宏傣族景颇族自治州", "地区代码": 533100, "省份": "云南省", "地级市": "德宏傣族景颇族自治州", "区县": "", "年份": 2025, "GDP": 648.07, "一般公共预算收入": 35.59, "一般公共预算支出": 175.48, "政府性基金收入": 12.45, "地方政府债务余额": 559.14, "层级": "city"}, {"序号": 61, "地区名称": "玉州区", "地区代码": 450902, "省份": "广西壮族自治区", "地级市": "玉林市", "区县": "玉州区", "年份": 2025, "GDP": 632.92, "一般公共预算收入": 7.77, "一般公共预算支出": 32.65, "政府性基金收入": 0.39, "地方政府债务余额": 47.5, "层级": "county"}, {"序号": 62, "地区名称": "大理市", "地区代码": 532901, "省份": "云南省", "地级市": "大理白族自治州", "区县": "大理市", "年份": 2025, "GDP": 632.88, "一般公共预算收入": 33.19, "一般公共预算支出": 55.38, "政府性基金收入": 5.8, "地方政府债务余额": 250.41, "层级": "county"}, {"序号": 63, "地区名称": "七星关区", "地区代码": 520502, "省份": "贵州省", "地级市": "毕节市", "区县": "七星关区", "年份": 2025, "GDP": 619.31, "一般公共预算收入": 25.59, "一般公共预算支出": 111.47, "政府性基金收入": 74.21, "地方政府债务余额": 398.0, "层级": "county"}, {"序号": 64, "地区名称": "铁山港区", "地区代码": 450512, "省份": "广西壮族自治区", "地级市": "北海市", "区县": "铁山港区", "年份": 2025, "GDP": 595.16, "一般公共预算收入": 4.33, "一般公共预算支出": 13.87, "政府性基金收入": 0.05, "地方政府债务余额": 7.51, "层级": "county"}, {"序号": 65, "地区名称": "兴义市", "地区代码": 522301, "省份": "贵州省", "地级市": "黔西南布依族苗族自治州", "区县": "兴义市", "年份": 2025, "GDP": 588.49, "一般公共预算收入": 33.02, "一般公共预算支出": 77.84, "政府性基金收入": 72.09, "地方政府债务余额": 458.28, "层级": "county"}, {"序号": 66, "地区名称": "弥勒市", "地区代码": 532504, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "弥勒市", "年份": 2025, "GDP": 588.39, "一般公共预算收入": 21.18, "一般公共预算支出": 50.01, "政府性基金收入": 22.25, "地方政府债务余额": 121.02, "层级": "county"}, {"序号": 67, "地区名称": "鱼峰区", "地区代码": 450203, "省份": "广西壮族自治区", "地级市": "柳州市", "区县": "鱼峰区", "年份": 2025, "GDP": 582.04, "一般公共预算收入": 5.75, "一般公共预算支出": 24.93, "政府性基金收入": 0.09, "地方政府债务余额": 6.31, "层级": "county"}, {"序号": 68, "地区名称": "汇川区", "地区代码": 520303, "省份": "贵州省", "地级市": "遵义市", "区县": "汇川区", "年份": 2025, "GDP": 560.02, "一般公共预算收入": 20.29, "一般公共预算支出": 46.14, "政府性基金收入": 24.42, "地方政府债务余额": 261.96, "层级": "county"}, {"序号": 69, "地区名称": "遵义经济技术开发区", "地区代码": null, "省份": "贵州省", "地级市": "遵义市", "区县": "汇川区", "年份": 2025, "GDP": 560.02, "一般公共预算收入": 20.29, "一般公共预算支出": 46.14, "政府性基金收入": 24.42, "地方政府债务余额": 261.96, "层级": "county"}, {"序号": 70, "地区名称": "良庆区", "地区代码": 450108, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "良庆区", "年份": 2025, "GDP": 543.41, "一般公共预算收入": 17.15, "一般公共预算支出": 29.61, "政府性基金收入": 0.23, "地方政府债务余额": 23.11, "层级": "county"}, {"序号": 71, "地区名称": "昭阳区", "地区代码": 530602, "省份": "云南省", "地级市": "昭通市", "区县": "昭阳区", "年份": 2025, "GDP": 534.04, "一般公共预算收入": 17.6, "一般公共预算支出": 68.19, "政府性基金收入": 6.23, "地方政府债务余额": 196.34, "层级": "county"}, {"序号": 72, "地区名称": "柳南区", "地区代码": 450204, "省份": "广西壮族自治区", "地级市": "柳州市", "区县": "柳南区", "年份": 2025, "GDP": 525.97, "一般公共预算收入": 9.21, "一般公共预算支出": 27.13, "政府性基金收入": 0.03, "地方政府债务余额": 5.46, "层级": "county"}, {"序号": 73, "地区名称": "北流市", "地区代码": 450981, "省份": "广西壮族自治区", "地级市": "玉林市", "区县": "北流市", "年份": 2025, "GDP": 521.94, "一般公共预算收入": 20.25, "一般公共预算支出": 71.06, "政府性基金收入": 7.42, "地方政府债务余额": 127.75, "层级": "county"}, {"序号": 74, "地区名称": "蒙自市", "地区代码": 532503, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "蒙自市", "年份": 2025, "GDP": 509.71, "一般公共预算收入": 14.0, "一般公共预算支出": 44.92, "政府性基金收入": 8.49, "地方政府债务余额": 109.99, "层级": "county"}, {"序号": 75, "地区名称": "兴宾区", "地区代码": 451302, "省份": "广西壮族自治区", "地级市": "来宾市", "区县": "兴宾区", "年份": 2025, "GDP": 506.02, "一般公共预算收入": 11.21, "一般公共预算支出": 51.04, "政府性基金收入": 1.04, "地方政府债务余额": 67.02, "层级": "county"}, {"序号": 76, "地区名称": "西秀区", "地区代码": 520402, "省份": "贵州省", "地级市": "安顺市", "区县": "西秀区", "年份": 2025, "GDP": 500.27, "一般公共预算收入": 20.49, "一般公共预算支出": 54.98, "政府性基金收入": 26.75, "地方政府债务余额": 170.96, "层级": "county"}, {"序号": 77, "地区名称": "隆阳区", "地区代码": 530502, "省份": "云南省", "地级市": "保山市", "区县": "隆阳区", "年份": 2025, "GDP": 492.08, "一般公共预算收入": 18.11, "一般公共预算支出": 59.42, "政府性基金收入": 2.96, "地方政府债务余额": 219.43, "层级": "county"}, {"序号": 78, "地区名称": "宣威市", "地区代码": 530381, "省份": "云南省", "地级市": "曲靖市", "区县": "宣威市", "年份": 2025, "GDP": 486.39, "一般公共预算收入": 14.42, "一般公共预算支出": 83.11, "政府性基金收入": 2.26, "地方政府债务余额": 124.83, "层级": "county"}, {"序号": 79, "地区名称": "柳北区", "地区代码": 450205, "省份": "广西壮族自治区", "地级市": "柳州市", "区县": "柳北区", "年份": 2025, "GDP": 481.5, "一般公共预算收入": 6.86, "一般公共预算支出": 19.63, "政府性基金收入": 0.06, "地方政府债务余额": 6.52, "层级": "county"}, {"序号": 80, "地区名称": "城中区", "地区代码": 450202, "省份": "广西壮族自治区", "地级市": "柳州市", "区县": "城中区", "年份": 2025, "GDP": 472.66, "一般公共预算收入": 9.94, "一般公共预算支出": 13.05, "政府性基金收入": null, "地方政府债务余额": 2.61, "层级": "county"}, {"序号": 81, "地区名称": "景洪市", "地区代码": 532801, "省份": "云南省", "地级市": "西双版纳傣族自治州", "区县": "景洪市", "年份": 2025, "GDP": 472.22, "一般公共预算收入": 16.18, "一般公共预算支出": 47.84, "政府性基金收入": 13.07, "地方政府债务余额": 143.55, "层级": "county"}, {"序号": 82, "地区名称": "武鸣区", "地区代码": 450110, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "武鸣区", "年份": 2025, "GDP": 467.59, "一般公共预算收入": 10.48, "一般公共预算支出": 44.14, "政府性基金收入": 3.48, "地方政府债务余额": 69.19, "层级": "county"}, {"序号": 83, "地区名称": "兴宁区", "地区代码": 450102, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "兴宁区", "年份": 2025, "GDP": 463.13, "一般公共预算收入": 10.95, "一般公共预算支出": 25.97, "政府性基金收入": 0.34, "地方政府债务余额": 16.96, "层级": "county"}, {"序号": 84, "地区名称": "合浦县", "地区代码": 450521, "省份": "广西壮族自治区", "地级市": "北海市", "区县": "合浦县", "年份": 2025, "GDP": 458.86, "一般公共预算收入": 14.91, "一般公共预算支出": 66.34, "政府性基金收入": 4.96, "地方政府债务余额": 111.28, "层级": "county"}, {"序号": 85, "地区名称": "桂平市", "地区代码": 450881, "省份": "广西壮族自治区", "地级市": "贵港市", "区县": "桂平市", "年份": 2025, "GDP": 455.19, "一般公共预算收入": 11.47, "一般公共预算支出": 87.76, "政府性基金收入": 3.2, "地方政府债务余额": 97.71, "层级": "county"}, {"序号": 86, "地区名称": "沾益区", "地区代码": 530303, "省份": "云南省", "地级市": "曲靖市", "区县": "沾益区", "年份": 2025, "GDP": 447.46, "一般公共预算收入": 15.41, "一般公共预算支出": 34.34, "政府性基金收入": 1.04, "地方政府债务余额": 103.6, "层级": "county"}, {"序号": 87, "地区名称": "中国-马来西亚钦州产业园区", "地区代码": null, "省份": "广西壮族自治区", "地级市": "钦州市", "区县": "钦南区", "年份": 2025, "GDP": 443.1, "一般公共预算收入": null, "一般公共预算支出": null, "政府性基金收入": null, "地方政府债务余额": null, "层级": "county"}, {"序号": 88, "地区名称": "个旧市", "地区代码": 532501, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "个旧市", "年份": 2025, "GDP": 437.72, "一般公共预算收入": 13.38, "一般公共预算支出": 32.52, "政府性基金收入": 3.15, "地方政府债务余额": 63.77, "层级": "county"}, {"序号": 89, "地区名称": "藤县", "地区代码": 450422, "省份": "广西壮族自治区", "地级市": "梧州市", "区县": "藤县", "年份": 2025, "GDP": 433.3, "一般公共预算收入": 11.86, "一般公共预算支出": 53.9, "政府性基金收入": 3.57, "地方政府债务余额": 88.16, "层级": "county"}, {"序号": 90, "地区名称": "扶绥县", "地区代码": 451421, "省份": "广西壮族自治区", "地级市": "崇左市", "区县": "扶绥县", "年份": 2025, "GDP": 431.19, "一般公共预算收入": 12.46, "一般公共预算支出": 41.66, "政府性基金收入": 7.35, "地方政府债务余额": 86.98, "层级": "county"}, {"序号": 91, "地区名称": "文山市", "地区代码": 532601, "省份": "云南省", "地级市": "文山壮族苗族自治州", "区县": "文山市", "年份": 2025, "GDP": 428.62, "一般公共预算收入": 24.02, "一般公共预算支出": 54.35, "政府性基金收入": 10.34, "地方政府债务余额": 193.99, "层级": "county"}, {"序号": 92, "地区名称": "播州区", "地区代码": 520304, "省份": "贵州省", "地级市": "遵义市", "区县": "播州区", "年份": 2025, "GDP": 424.98, "一般公共预算收入": 14.54, "一般公共预算支出": 57.07, "政府性基金收入": 45.78, "地方政府债务余额": 224.49, "层级": "county"}, {"序号": 93, "地区名称": "横州市", "地区代码": 450181, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "横州市", "年份": 2025, "GDP": 423.46, "一般公共预算收入": 13.09, "一般公共预算支出": 64.25, "政府性基金收入": 3.65, "地方政府债务余额": 51.33, "层级": "county"}, {"序号": 94, "地区名称": "右江区", "地区代码": 451002, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "右江区", "年份": 2025, "GDP": 414.19, "一般公共预算收入": 6.29, "一般公共预算支出": 31.92, "政府性基金收入": 0.05, "地方政府债务余额": 55.04, "层级": "county"}, {"序号": 95, "地区名称": "钟山区", "地区代码": 520201, "省份": "贵州省", "地级市": "六盘水市", "区县": "钟山区", "年份": 2025, "GDP": 413.21, "一般公共预算收入": 17.0, "一般公共预算支出": 45.56, "政府性基金收入": 51.94, "地方政府债务余额": 208.22, "层级": "county"}, {"序号": 96, "地区名称": "港北区", "地区代码": 450802, "省份": "广西壮族自治区", "地级市": "贵港市", "区县": "港北区", "年份": 2025, "GDP": 412.89, "一般公共预算收入": 7.46, "一般公共预算支出": 35.69, "政府性基金收入": 0.69, "地方政府债务余额": 53.04, "层级": "county"}, {"序号": 97, "地区名称": "博白县", "地区代码": 450923, "省份": "广西壮族自治区", "地级市": "玉林市", "区县": "博白县", "年份": 2025, "GDP": 412.55, "一般公共预算收入": 9.25, "一般公共预算支出": 87.9, "政府性基金收入": 4.19, "地方政府债务余额": 95.51, "层级": "county"}, {"序号": 98, "地区名称": "水城区", "地区代码": 520204, "省份": "贵州省", "地级市": "六盘水市", "区县": "水城区", "年份": 2025, "GDP": 411.09, "一般公共预算收入": 14.61, "一般公共预算支出": 68.06, "政府性基金收入": 58.46, "地方政府债务余额": 224.11, "层级": "county"}, {"序号": 99, "地区名称": "灵山县", "地区代码": 450721, "省份": "广西壮族自治区", "地级市": "钦州市", "区县": "灵山县", "年份": 2025, "GDP": 408.67, "一般公共预算收入": 12.42, "一般公共预算支出": 81.64, "政府性基金收入": 6.27, "地方政府债务余额": 93.42, "层级": "county"}, {"序号": 100, "地区名称": "红花岗区", "地区代码": 520302, "省份": "贵州省", "地级市": "遵义市", "区县": "红花岗区", "年份": 2025, "GDP": 405.93, "一般公共预算收入": 16.04, "一般公共预算支出": 41.86, "政府性基金收入": 29.57, "地方政府债务余额": 306.5, "层级": "county"}, {"序号": 101, "地区名称": "会泽县", "地区代码": 530326, "省份": "云南省", "地级市": "曲靖市", "区县": "会泽县", "年份": 2025, "GDP": 390.5, "一般公共预算收入": 16.68, "一般公共预算支出": 71.27, "政府性基金收入": 1.13, "地方政府债务余额": 118.42, "层级": "county"}, {"序号": 102, "地区名称": "钦南区", "地区代码": 450702, "省份": "广西壮族自治区", "地级市": "钦州市", "区县": "钦南区", "年份": 2025, "GDP": 382.7, "一般公共预算收入": 8.16, "一般公共预算支出": 39.87, "政府性基金收入": 3.63, "地方政府债务余额": 74.96, "层级": "county"}, {"序号": 103, "地区名称": "钦北区", "地区代码": 450703, "省份": "广西壮族自治区", "地级市": "钦州市", "区县": "钦北区", "年份": 2025, "GDP": 381.39, "一般公共预算收入": 7.35, "一般公共预算支出": 43.75, "政府性基金收入": 2.21, "地方政府债务余额": 54.29, "层级": "county"}, {"序号": 104, "地区名称": "腾冲市", "地区代码": 530581, "省份": "云南省", "地级市": "保山市", "区县": "腾冲市", "年份": 2025, "GDP": 376.74, "一般公共预算收入": 17.8, "一般公共预算支出": 60.7, "政府性基金收入": 6.89, "地方政府债务余额": 181.76, "层级": "county"}, {"序号": 105, "地区名称": "楚雄高新技术产业开发区", "地区代码": null, "省份": "云南省", "地级市": "楚雄彝族自治州", "区县": "楚雄市", "年份": 2025, "GDP": 375.7, "一般公共预算收入": 8.9, "一般公共预算支出": 7.75, "政府性基金收入": 6.81, "地方政府债务余额": null, "层级": "county"}, {"序号": 106, "地区名称": "镇雄县", "地区代码": 530627, "省份": "云南省", "地级市": "昭通市", "区县": "镇雄县", "年份": 2025, "GDP": 374.07, "一般公共预算收入": 11.83, "一般公共预算支出": 103.65, "政府性基金收入": 5.95, "地方政府债务余额": 212.51, "层级": "county"}, {"序号": 107, "地区名称": "开阳县", "地区代码": 520121, "省份": "贵州省", "地级市": "贵阳市", "区县": "开阳县", "年份": 2025, "GDP": 366.45, "一般公共预算收入": 16.94, "一般公共预算支出": 42.16, "政府性基金收入": 19.14, "地方政府债务余额": 93.33, "层级": "county"}, {"序号": 108, "地区名称": "威宁彝族回族苗族自治县", "地区代码": 520526, "省份": "贵州省", "地级市": "毕节市", "区县": "威宁彝族回族苗族自治县", "年份": 2025, "GDP": 363.23, "一般公共预算收入": 12.83, "一般公共预算支出": 102.25, "政府性基金收入": 11.03, "地方政府债务余额": 163.5, "层级": "county"}, {"序号": 109, "地区名称": "清镇市", "地区代码": 520181, "省份": "贵州省", "地级市": "贵阳市", "区县": "清镇市", "年份": 2025, "GDP": 360.52, "一般公共预算收入": 20.63, "一般公共预算支出": 45.65, "政府性基金收入": 39.48, "地方政府债务余额": 217.67, "层级": "county"}, {"序号": 110, "地区名称": "八步区", "地区代码": 451102, "省份": "广西壮族自治区", "地级市": "贺州市", "区县": "八步区", "年份": 2025, "GDP": 357.68, "一般公共预算收入": 7.55, "一般公共预算支出": 42.83, "政府性基金收入": 2.49, "地方政府债务余额": 82.92, "层级": "county"}, {"序号": 111, "地区名称": "凯里市", "地区代码": 522601, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "凯里市", "年份": 2025, "GDP": 354.23, "一般公共预算收入": 22.5, "一般公共预算支出": 57.66, "政府性基金收入": 31.54, "地方政府债务余额": 248.47, "层级": "county"}, {"序号": 112, "地区名称": "开远市", "地区代码": 532502, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "开远市", "年份": 2025, "GDP": 353.25, "一般公共预算收入": 17.33, "一般公共预算支出": 35.7, "政府性基金收入": 6.34, "地方政府债务余额": 103.23, "层级": "county"}, {"序号": 113, "地区名称": "白云区", "地区代码": 520113, "省份": "贵州省", "地级市": "贵阳市", "区县": "白云区", "年份": 2025, "GDP": 350.18, "一般公共预算收入": 11.13, "一般公共预算支出": 30.5, "政府性基金收入": 9.86, "地方政府债务余额": 149.39, "层级": "county"}, {"序号": 114, "地区名称": "平果市", "地区代码": 451082, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "平果市", "年份": 2025, "GDP": 344.14, "一般公共预算收入": 23.49, "一般公共预算支出": 45.62, "政府性基金收入": 5.54, "地方政府债务余额": 112.04, "层级": "county"}, {"序号": 115, "地区名称": "临桂区", "地区代码": 450312, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "临桂区", "年份": 2025, "GDP": 339.02, "一般公共预算收入": 11.8, "一般公共预算支出": 38.01, "政府性基金收入": 3.03, "地方政府债务余额": 56.8, "层级": "county"}, {"序号": 116, "地区名称": "陆良县", "地区代码": 530322, "省份": "云南省", "地级市": "曲靖市", "区县": "陆良县", "年份": 2025, "GDP": 326.06, "一般公共预算收入": 9.23, "一般公共预算支出": 37.83, "政府性基金收入": 3.05, "地方政府债务余额": 57.41, "层级": "county"}, {"序号": 117, "地区名称": "金城江区", "地区代码": 451202, "省份": "广西壮族自治区", "地级市": "河池市", "区县": "金城江区", "年份": 2025, "GDP": 326.03, "一般公共预算收入": 3.8, "一般公共预算支出": 25.02, "政府性基金收入": 0.66, "地方政府债务余额": 36.33, "层级": "county"}, {"序号": 118, "地区名称": "宾阳县", "地区代码": 450126, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "宾阳县", "年份": 2025, "GDP": 323.32, "一般公共预算收入": 8.12, "一般公共预算支出": 56.38, "政府性基金收入": 1.63, "地方政府债务余额": 63.84, "层级": "county"}, {"序号": 119, "地区名称": "七星区", "地区代码": 450305, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "七星区", "年份": 2025, "GDP": 318.24, "一般公共预算收入": 9.82, "一般公共预算支出": 18.46, "政府性基金收入": null, "地方政府债务余额": 33.59, "层级": "county"}, {"序号": 120, "地区名称": "平南县", "地区代码": 450821, "省份": "广西壮族自治区", "地级市": "贵港市", "区县": "平南县", "年份": 2025, "GDP": 317.7, "一般公共预算收入": 10.66, "一般公共预算支出": 73.26, "政府性基金收入": 4.94, "地方政府债务余额": 93.85, "层级": "county"}, {"序号": 121, "地区名称": "迪庆藏族自治州", "地区代码": 533400, "省份": "云南省", "地级市": "迪庆藏族自治州", "区县": "", "年份": 2025, "GDP": 316.65, "一般公共预算收入": 18.49, "一般公共预算支出": 142.43, "政府性基金收入": 2.37, "地方政府债务余额": 227.33, "层级": "city"}, {"序号": 122, "地区名称": "福泉市", "地区代码": 522702, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "福泉市", "年份": 2025, "GDP": 316.17, "一般公共预算收入": 17.91, "一般公共预算支出": 38.84, "政府性基金收入": 17.34, "地方政府债务余额": 86.38, "层级": "county"}, {"序号": 123, "地区名称": "习水县", "地区代码": 520330, "省份": "贵州省", "地级市": "遵义市", "区县": "习水县", "年份": 2025, "GDP": 314.64, "一般公共预算收入": 29.84, "一般公共预算支出": 65.21, "政府性基金收入": 16.36, "地方政府债务余额": 174.84, "层级": "county"}, {"序号": 124, "地区名称": "砚山县", "地区代码": 532622, "省份": "云南省", "地级市": "文山壮族苗族自治州", "区县": "砚山县", "年份": 2025, "GDP": 313.23, "一般公共预算收入": 12.33, "一般公共预算支出": 42.62, "政府性基金收入": 5.7, "地方政府债务余额": 131.71, "层级": "county"}, {"序号": 125, "地区名称": "罗平县", "地区代码": 530324, "省份": "云南省", "地级市": "曲靖市", "区县": "罗平县", "年份": 2025, "GDP": 311.98, "一般公共预算收入": 8.33, "一般公共预算支出": 36.48, "政府性基金收入": 2.32, "地方政府债务余额": 75.7, "层级": "county"}, {"序号": 126, "地区名称": "都匀市", "地区代码": 522701, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "都匀市", "年份": 2025, "GDP": 304.18, "一般公共预算收入": 16.34, "一般公共预算支出": 44.01, "政府性基金收入": 35.93, "地方政府债务余额": 195.99, "层级": "county"}, {"序号": 127, "地区名称": "禄丰市", "地区代码": 532302, "省份": "云南省", "地级市": "楚雄彝族自治州", "区县": "禄丰市", "年份": 2025, "GDP": 300.26, "一般公共预算收入": 10.95, "一般公共预算支出": 31.18, "政府性基金收入": 12.04, "地方政府债务余额": 110.63, "层级": "county"}, {"序号": 128, "地区名称": "富源县", "地区代码": 530325, "省份": "云南省", "地级市": "曲靖市", "区县": "富源县", "年份": 2025, "GDP": 300.0, "一般公共预算收入": 18.49, "一般公共预算支出": 49.07, "政府性基金收入": 4.15, "地方政府债务余额": 97.0, "层级": "county"}, {"序号": 129, "地区名称": "岑溪市", "地区代码": 450481, "省份": "广西壮族自治区", "地级市": "梧州市", "区县": "岑溪市", "年份": 2025, "GDP": 298.25, "一般公共预算收入": 10.29, "一般公共预算支出": 49.89, "政府性基金收入": 2.01, "地方政府债务余额": 52.05, "层级": "county"}, {"序号": 130, "地区名称": "大方县", "地区代码": 520521, "省份": "贵州省", "地级市": "毕节市", "区县": "大方县", "年份": 2025, "GDP": 295.26, "一般公共预算收入": 8.74, "一般公共预算支出": 57.49, "政府性基金收入": 12.93, "地方政府债务余额": 131.3, "层级": "county"}, {"序号": 131, "地区名称": "碧江区", "地区代码": 520602, "省份": "贵州省", "地级市": "铜仁市", "区县": "碧江区", "年份": 2025, "GDP": 292.74, "一般公共预算收入": 15.12, "一般公共预算支出": 40.15, "政府性基金收入": 25.71, "地方政府债务余额": 176.03, "层级": "county"}, {"序号": 132, "地区名称": "浦北县", "地区代码": 450722, "省份": "广西壮族自治区", "地级市": "钦州市", "区县": "浦北县", "年份": 2025, "GDP": 291.74, "一般公共预算收入": 7.76, "一般公共预算支出": 48.88, "政府性基金收入": 3.85, "地方政府债务余额": 63.65, "层级": "county"}, {"序号": 133, "地区名称": "江州区", "地区代码": 451402, "省份": "广西壮族自治区", "地级市": "崇左市", "区县": "江州区", "年份": 2025, "GDP": 291.66, "一般公共预算收入": 7.39, "一般公共预算支出": 32.32, "政府性基金收入": 1.0, "地方政府债务余额": 39.89, "层级": "county"}, {"序号": 134, "地区名称": "怒江傈僳族自治州", "地区代码": 533300, "省份": "云南省", "地级市": "怒江傈僳族自治州", "区县": "", "年份": 2025, "GDP": 288.98, "一般公共预算收入": 14.34, "一般公共预算支出": 127.37, "政府性基金收入": 4.82, "地方政府债务余额": 200.09, "层级": "city"}, {"序号": 135, "地区名称": "金沙县", "地区代码": 520523, "省份": "贵州省", "地级市": "毕节市", "区县": "金沙县", "年份": 2025, "GDP": 287.8, "一般公共预算收入": 18.53, "一般公共预算支出": 56.24, "政府性基金收入": 6.36, "地方政府债务余额": 131.3, "层级": "county"}, {"序号": 136, "地区名称": "新平彝族傣族自治县", "地区代码": 530427, "省份": "云南省", "地级市": "玉溪市", "区县": "新平彝族傣族自治县", "年份": 2025, "GDP": 285.01, "一般公共预算收入": 14.51, "一般公共预算支出": 31.95, "政府性基金收入": 3.18, "地方政府债务余额": 63.99, "层级": "county"}, {"序号": 137, "地区名称": "建水县", "地区代码": 532524, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "建水县", "年份": 2025, "GDP": 284.34, "一般公共预算收入": 12.75, "一般公共预算支出": 34.91, "政府性基金收入": 6.71, "地方政府债务余额": 74.45, "层级": "county"}, {"序号": 138, "地区名称": "织金县", "地区代码": 520524, "省份": "贵州省", "地级市": "毕节市", "区县": "织金县", "年份": 2025, "GDP": 282.16, "一般公共预算收入": 13.16, "一般公共预算支出": 73.18, "政府性基金收入": 12.95, "地方政府债务余额": 178.6, "层级": "county"}, {"序号": 139, "地区名称": "黔西市", "地区代码": 520581, "省份": "贵州省", "地级市": "毕节市", "区县": "黔西市", "年份": 2025, "GDP": 280.73, "一般公共预算收入": 11.11, "一般公共预算支出": 57.85, "政府性基金收入": 11.92, "地方政府债务余额": 152.1, "层级": "county"}, {"序号": 140, "地区名称": "思茅区", "地区代码": 530802, "省份": "云南省", "地级市": "普洱市", "区县": "思茅区", "年份": 2025, "GDP": 280.33, "一般公共预算收入": 9.63, "一般公共预算支出": 25.33, "政府性基金收入": 4.06, "地方政府债务余额": 69.45, "层级": "county"}, {"序号": 141, "地区名称": "万秀区", "地区代码": 450403, "省份": "广西壮族自治区", "地级市": "梧州市", "区县": "万秀区", "年份": 2025, "GDP": 276.77, "一般公共预算收入": 3.12, "一般公共预算支出": 10.93, "政府性基金收入": 0.03, "地方政府债务余额": 7.69, "层级": "county"}, {"序号": 142, "地区名称": "长洲区", "地区代码": 450405, "省份": "广西壮族自治区", "地级市": "梧州市", "区县": "长洲区", "年份": 2025, "GDP": 268.81, "一般公共预算收入": 3.84, "一般公共预算支出": 9.24, "政府性基金收入": 0.15, "地方政府债务余额": 9.02, "层级": "county"}, {"序号": 143, "地区名称": "祥云县", "地区代码": 532923, "省份": "云南省", "地级市": "大理白族自治州", "区县": "祥云县", "年份": 2025, "GDP": 264.44, "一般公共预算收入": 8.94, "一般公共预算支出": 32.49, "政府性基金收入": 1.66, "地方政府债务余额": 88.6, "层级": "county"}, {"序号": 144, "地区名称": "银海区", "地区代码": 450503, "省份": "广西壮族自治区", "地级市": "北海市", "区县": "银海区", "年份": 2025, "GDP": 260.08, "一般公共预算收入": 7.06, "一般公共预算支出": 19.7, "政府性基金收入": 0.42, "地方政府债务余额": 29.66, "层级": "county"}, {"序号": 145, "地区名称": "陆川县", "地区代码": 450922, "省份": "广西壮族自治区", "地级市": "玉林市", "区县": "陆川县", "年份": 2025, "GDP": 259.78, "一般公共预算收入": 6.92, "一般公共预算支出": 53.4, "政府性基金收入": 3.93, "地方政府债务余额": 88.24, "层级": "county"}, {"序号": 146, "地区名称": "平桂区", "地区代码": 451103, "省份": "广西壮族自治区", "地级市": "贺州市", "区县": "平桂区", "年份": 2025, "GDP": 252.62, "一般公共预算收入": 6.12, "一般公共预算支出": 30.03, "政府性基金收入": 1.84, "地方政府债务余额": 70.48, "层级": "county"}, {"序号": 147, "地区名称": "龙圩区", "地区代码": 450406, "省份": "广西壮族自治区", "地级市": "梧州市", "区县": "龙圩区", "年份": 2025, "GDP": 250.41, "一般公共预算收入": 1.54, "一般公共预算支出": 20.34, "政府性基金收入": 0.31, "地方政府债务余额": 20.88, "层级": "county"}, {"序号": 148, "地区名称": "乌当区", "地区代码": 520112, "省份": "贵州省", "地级市": "贵阳市", "区县": "乌当区", "年份": 2025, "GDP": 249.07, "一般公共预算收入": 13.98, "一般公共预算支出": 30.39, "政府性基金收入": 9.96, "地方政府债务余额": 145.59, "层级": "county"}, {"序号": 149, "地区名称": "古城区", "地区代码": 530702, "省份": "云南省", "地级市": "丽江市", "区县": "古城区", "年份": 2025, "GDP": 244.65, "一般公共预算收入": 11.36, "一般公共预算支出": 22.25, "政府性基金收入": 3.57, "地方政府债务余额": 75.02, "层级": "county"}, {"序号": 150, "地区名称": "勐海县", "地区代码": 532822, "省份": "云南省", "地级市": "西双版纳傣族自治州", "区县": "勐海县", "年份": 2025, "GDP": 243.47, "一般公共预算收入": 6.91, "一般公共预算支出": 34.67, "政府性基金收入": 1.3, "地方政府债务余额": 59.42, "层级": "county"}, {"序号": 151, "地区名称": "柳江区", "地区代码": 450206, "省份": "广西壮族自治区", "地级市": "柳州市", "区县": "柳江区", "年份": 2025, "GDP": 238.45, "一般公共预算收入": 7.69, "一般公共预算支出": 36.25, "政府性基金收入": 2.1, "地方政府债务余额": 72.52, "层级": "county"}, {"序号": 152, "地区名称": "晋宁区", "地区代码": 530115, "省份": "云南省", "地级市": "昆明市", "区县": "晋宁区", "年份": 2025, "GDP": 236.86, "一般公共预算收入": 20.29, "一般公共预算支出": 28.19, "政府性基金收入": 1.11, "地方政府债务余额": 81.43, "层级": "county"}, {"序号": 153, "地区名称": "息烽县", "地区代码": 520122, "省份": "贵州省", "地级市": "贵阳市", "区县": "息烽县", "年份": 2025, "GDP": 236.54, "一般公共预算收入": 4.66, "一般公共预算支出": 28.05, "政府性基金收入": 29.75, "地方政府债务余额": 87.55, "层级": "county"}, {"序号": 154, "地区名称": "田阳区", "地区代码": 451003, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "田阳区", "年份": 2025, "GDP": 236.5, "一般公共预算收入": 5.95, "一般公共预算支出": 29.73, "政府性基金收入": 3.43, "地方政府债务余额": 59.15, "层级": "county"}, {"序号": 155, "地区名称": "覃塘区", "地区代码": 450804, "省份": "广西壮族自治区", "地级市": "贵港市", "区县": "覃塘区", "年份": 2025, "GDP": 235.67, "一般公共预算收入": 4.15, "一般公共预算支出": 33.47, "政府性基金收入": 0.02, "地方政府债务余额": 55.46, "层级": "county"}, {"序号": 156, "地区名称": "容县", "地区代码": 450921, "省份": "广西壮族自治区", "地级市": "玉林市", "区县": "容县", "年份": 2025, "GDP": 235.29, "一般公共预算收入": 7.88, "一般公共预算支出": 52.68, "政府性基金收入": 8.21, "地方政府债务余额": 59.16, "层级": "county"}, {"序号": 157, "地区名称": "松桃苗族自治县", "地区代码": 520628, "省份": "贵州省", "地级市": "铜仁市", "区县": "松桃苗族自治县", "年份": 2025, "GDP": 235.13, "一般公共预算收入": 6.51, "一般公共预算支出": 59.25, "政府性基金收入": 16.07, "地方政府债务余额": 129.78, "层级": "county"}, {"序号": 158, "地区名称": "修文县", "地区代码": 520123, "省份": "贵州省", "地级市": "贵阳市", "区县": "修文县", "年份": 2025, "GDP": 230.29, "一般公共预算收入": 8.48, "一般公共预算支出": 27.12, "政府性基金收入": 25.55, "地方政府债务余额": 87.2, "层级": "county"}, {"序号": 159, "地区名称": "柳城县", "地区代码": 450222, "省份": "广西壮族自治区", "地级市": "柳州市", "区县": "柳城县", "年份": 2025, "GDP": 225.41, "一般公共预算收入": 4.95, "一般公共预算支出": 31.53, "政府性基金收入": 1.29, "地方政府债务余额": 55.72, "层级": "county"}, {"序号": 160, "地区名称": "勐腊县", "地区代码": 532823, "省份": "云南省", "地级市": "西双版纳傣族自治州", "区县": "勐腊县", "年份": 2025, "GDP": 225.14, "一般公共预算收入": 4.71, "一般公共预算支出": 32.15, "政府性基金收入": 0.2, "地方政府债务余额": 90.62, "层级": "county"}, {"序号": 161, "地区名称": "兴业县", "地区代码": 450924, "省份": "广西壮族自治区", "地级市": "玉林市", "区县": "兴业县", "年份": 2025, "GDP": 224.29, "一般公共预算收入": 5.88, "一般公共预算支出": 35.55, "政府性基金收入": 2.67, "地方政府债务余额": 54.88, "层级": "county"}, {"序号": 162, "地区名称": "嵩明县", "地区代码": 530127, "省份": "云南省", "地级市": "昆明市", "区县": "嵩明县", "年份": 2025, "GDP": 223.64, "一般公共预算收入": 9.6, "一般公共预算支出": 23.98, "政府性基金收入": 21.95, "地方政府债务余额": 87.54, "层级": "county"}, {"序号": 163, "地区名称": "临翔区", "地区代码": 530902, "省份": "云南省", "地级市": "临沧市", "区县": "临翔区", "年份": 2025, "GDP": 222.0, "一般公共预算收入": 7.3, "一般公共预算支出": 27.09, "政府性基金收入": 1.09, "地方政府债务余额": 76.1, "层级": "county"}, {"序号": 164, "地区名称": "江川区", "地区代码": 530403, "省份": "云南省", "地级市": "玉溪市", "区县": "江川区", "年份": 2025, "GDP": 221.55, "一般公共预算收入": 6.41, "一般公共预算支出": 23.78, "政府性基金收入": 1.29, "地方政府债务余额": 40.86, "层级": "county"}, {"序号": 165, "地区名称": "宜良县", "地区代码": 530125, "省份": "云南省", "地级市": "昆明市", "区县": "宜良县", "年份": 2025, "GDP": 219.88, "一般公共预算收入": 7.18, "一般公共预算支出": 23.64, "政府性基金收入": 0.64, "地方政府债务余额": 74.42, "层级": "county"}, {"序号": 166, "地区名称": "瓮安县", "地区代码": 522725, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "瓮安县", "年份": 2025, "GDP": 219.47, "一般公共预算收入": 11.23, "一般公共预算支出": 39.49, "政府性基金收入": 41.8, "地方政府债务余额": 145.97, "层级": "county"}, {"序号": 167, "地区名称": "寻甸回族彝族自治县", "地区代码": 530129, "省份": "云南省", "地级市": "昆明市", "区县": "寻甸回族彝族自治县", "年份": 2025, "GDP": 218.77, "一般公共预算收入": 12.04, "一般公共预算支出": 38.69, "政府性基金收入": 0.73, "地方政府债务余额": 33.62, "层级": "county"}, {"序号": 168, "地区名称": "象山区", "地区代码": 450304, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "象山区", "年份": 2025, "GDP": 217.43, "一般公共预算收入": 2.12, "一般公共预算支出": 7.02, "政府性基金收入": 0.09, "地方政府债务余额": 8.28, "层级": "county"}, {"序号": 169, "地区名称": "纳雍县", "地区代码": 520525, "省份": "贵州省", "地级市": "毕节市", "区县": "纳雍县", "年份": 2025, "GDP": 217.2, "一般公共预算收入": 10.49, "一般公共预算支出": 73.21, "政府性基金收入": 9.11, "地方政府债务余额": 106.7, "层级": "county"}, {"序号": 170, "地区名称": "广南县", "地区代码": 532627, "省份": "云南省", "地级市": "文山壮族苗族自治州", "区县": "广南县", "年份": 2025, "GDP": 216.34, "一般公共预算收入": 5.95, "一般公共预算支出": 63.03, "政府性基金收入": 4.03, "地方政府债务余额": 136.11, "层级": "county"}, {"序号": 171, "地区名称": "靖西市", "地区代码": 451081, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "靖西市", "年份": 2025, "GDP": 215.6, "一般公共预算收入": 16.04, "一般公共预算支出": 55.76, "政府性基金收入": 1.64, "地方政府债务余额": 86.38, "层级": "county"}, {"序号": 172, "地区名称": "桐梓县", "地区代码": 520322, "省份": "贵州省", "地级市": "遵义市", "区县": "桐梓县", "年份": 2025, "GDP": 214.69, "一般公共预算收入": 8.74, "一般公共预算支出": 43.79, "政府性基金收入": 23.06, "地方政府债务余额": 129.64, "层级": "county"}, {"序号": 173, "地区名称": "通海县", "地区代码": 530423, "省份": "云南省", "地级市": "玉溪市", "区县": "通海县", "年份": 2025, "GDP": 214.22, "一般公共预算收入": 6.27, "一般公共预算支出": 22.32, "政府性基金收入": 2.9, "地方政府债务余额": 46.46, "层级": "county"}, {"序号": 174, "地区名称": "昌宁县", "地区代码": 530524, "省份": "云南省", "地级市": "保山市", "区县": "昌宁县", "年份": 2025, "GDP": 213.21, "一般公共预算收入": 6.68, "一般公共预算支出": 30.34, "政府性基金收入": 3.19, "地方政府债务余额": 97.45, "层级": "county"}, {"序号": 175, "地区名称": "全州县", "地区代码": 450324, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "全州县", "年份": 2025, "GDP": 213.08, "一般公共预算收入": 5.44, "一般公共预算支出": 44.21, "政府性基金收入": 2.51, "地方政府债务余额": 62.6, "层级": "county"}, {"序号": 176, "地区名称": "宜州区", "地区代码": 451203, "省份": "广西壮族自治区", "地级市": "河池市", "区县": "宜州区", "年份": 2025, "GDP": 210.85, "一般公共预算收入": 6.78, "一般公共预算支出": 42.97, "政府性基金收入": 1.29, "地方政府债务余额": 61.88, "层级": "county"}, {"序号": 177, "地区名称": "芒市", "地区代码": 533103, "省份": "云南省", "地级市": "德宏傣族景颇族自治州", "区县": "芒市", "年份": 2025, "GDP": 210.83, "一般公共预算收入": 8.73, "一般公共预算支出": 31.98, "政府性基金收入": 2.8, "地方政府债务余额": 160.57, "层级": "county"}, {"序号": 178, "地区名称": "鹤庆县", "地区代码": 532932, "省份": "云南省", "地级市": "大理白族自治州", "区县": "鹤庆县", "年份": 2025, "GDP": 209.14, "一般公共预算收入": 9.4, "一般公共预算支出": 28.79, "政府性基金收入": 1.78, "地方政府债务余额": 54.63, "层级": "county"}, {"序号": 179, "地区名称": "田东县", "地区代码": 451022, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "田东县", "年份": 2025, "GDP": 209.02, "一般公共预算收入": 12.79, "一般公共预算支出": 38.06, "政府性基金收入": 2.34, "地方政府债务余额": 58.15, "层级": "county"}, {"序号": 180, "地区名称": "南丹县", "地区代码": 451221, "省份": "广西壮族自治区", "地级市": "河池市", "区县": "南丹县", "年份": 2025, "GDP": 208.68, "一般公共预算收入": 8.33, "一般公共预算支出": 31.37, "政府性基金收入": 1.87, "地方政府债务余额": 57.51, "层级": "county"}, {"序号": 181, "地区名称": "兴仁市", "地区代码": 522302, "省份": "贵州省", "地级市": "黔西南布依族苗族自治州", "区县": "兴仁市", "年份": 2025, "GDP": 207.9, "一般公共预算收入": 12.81, "一般公共预算支出": 42.33, "政府性基金收入": 37.74, "地方政府债务余额": 160.38, "层级": "county"}, {"序号": 182, "地区名称": "港南区", "地区代码": 450803, "省份": "广西壮族自治区", "地级市": "贵港市", "区县": "港南区", "年份": 2025, "GDP": 207.0, "一般公共预算收入": 3.49, "一般公共预算支出": 36.46, "政府性基金收入": 0.09, "地方政府债务余额": 39.87, "层级": "county"}, {"序号": 183, "地区名称": "鹿寨县", "地区代码": 450223, "省份": "广西壮族自治区", "地级市": "柳州市", "区县": "鹿寨县", "年份": 2025, "GDP": 205.41, "一般公共预算收入": 5.97, "一般公共预算支出": 29.15, "政府性基金收入": 2.35, "地方政府债务余额": 61.49, "层级": "county"}, {"序号": 184, "地区名称": "邕宁区", "地区代码": 450109, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "邕宁区", "年份": 2025, "GDP": 205.39, "一般公共预算收入": 6.4, "一般公共预算支出": 23.18, "政府性基金收入": 0.38, "地方政府债务余额": 48.93, "层级": "county"}, {"序号": 185, "地区名称": "思南县", "地区代码": 520624, "省份": "贵州省", "地级市": "铜仁市", "区县": "思南县", "年份": 2025, "GDP": 201.94, "一般公共预算收入": 3.77, "一般公共预算支出": 46.65, "政府性基金收入": 10.88, "地方政府债务余额": 107.2, "层级": "county"}, {"序号": 186, "地区名称": "宾川县", "地区代码": 532924, "省份": "云南省", "地级市": "大理白族自治州", "区县": "宾川县", "年份": 2025, "GDP": 201.31, "一般公共预算收入": 5.55, "一般公共预算支出": 28.01, "政府性基金收入": 0.82, "地方政府债务余额": 62.76, "层级": "county"}, {"序号": 187, "地区名称": "泸西县", "地区代码": 532527, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "泸西县", "年份": 2025, "GDP": 196.54, "一般公共预算收入": 16.03, "一般公共预算支出": 41.82, "政府性基金收入": 14.01, "地方政府债务余额": 107.59, "层级": "county"}, {"序号": 188, "地区名称": "赫章县", "地区代码": 520527, "省份": "贵州省", "地级市": "毕节市", "区县": "赫章县", "年份": 2025, "GDP": 195.43, "一般公共预算收入": 5.77, "一般公共预算支出": 56.37, "政府性基金收入": 15.19, "地方政府债务余额": 124.9, "层级": "county"}, {"序号": 189, "地区名称": "灵川县", "地区代码": 450323, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "灵川县", "年份": 2025, "GDP": 195.14, "一般公共预算收入": 7.63, "一般公共预算支出": 29.32, "政府性基金收入": 1.59, "地方政府债务余额": 56.44, "层级": "county"}, {"序号": 190, "地区名称": "六枝特区", "地区代码": 520203, "省份": "贵州省", "地级市": "六盘水市", "区县": "六枝特区", "年份": 2025, "GDP": 193.87, "一般公共预算收入": 6.39, "一般公共预算支出": 48.34, "政府性基金收入": 28.84, "地方政府债务余额": 125.28, "层级": "county"}, {"序号": 191, "地区名称": "香格里拉市", "地区代码": 533401, "省份": "云南省", "地级市": "迪庆藏族自治州", "区县": "香格里拉市", "年份": 2025, "GDP": 191.0, "一般公共预算收入": 9.17, "一般公共预算支出": 44.54, "政府性基金收入": 1.04, "地方政府债务余额": 83.74, "层级": "county"}, {"序号": 192, "地区名称": "凤庆县", "地区代码": 530921, "省份": "云南省", "地级市": "临沧市", "区县": "凤庆县", "年份": 2025, "GDP": 190.25, "一般公共预算收入": 6.81, "一般公共预算支出": 34.06, "政府性基金收入": 1.14, "地方政府债务余额": 65.43, "层级": "county"}, {"序号": 193, "地区名称": "禄劝彝族苗族自治县", "地区代码": 530128, "省份": "云南省", "地级市": "昆明市", "区县": "禄劝彝族苗族自治县", "年份": 2025, "GDP": 190.17, "一般公共预算收入": 7.25, "一般公共预算支出": 34.36, "政府性基金收入": 1.77, "地方政府债务余额": 30.17, "层级": "county"}, {"序号": 194, "地区名称": "峨山彝族自治县", "地区代码": 530426, "省份": "云南省", "地级市": "玉溪市", "区县": "峨山彝族自治县", "年份": 2025, "GDP": 189.73, "一般公共预算收入": 5.91, "一般公共预算支出": 19.85, "政府性基金收入": 0.81, "地方政府债务余额": 46.77, "层级": "county"}, {"序号": 195, "地区名称": "德江县", "地区代码": 520626, "省份": "贵州省", "地级市": "铜仁市", "区县": "德江县", "年份": 2025, "GDP": 189.17, "一般公共预算收入": 5.62, "一般公共预算支出": 47.58, "政府性基金收入": 20.26, "地方政府债务余额": 119.16, "层级": "county"}, {"序号": 196, "地区名称": "师宗县", "地区代码": 530323, "省份": "云南省", "地级市": "曲靖市", "区县": "师宗县", "年份": 2025, "GDP": 188.77, "一般公共预算收入": 7.07, "一般公共预算支出": 28.95, "政府性基金收入": 1.96, "地方政府债务余额": 73.03, "层级": "county"}, {"序号": 197, "地区名称": "富宁县", "地区代码": 532628, "省份": "云南省", "地级市": "文山壮族苗族自治州", "区县": "富宁县", "年份": 2025, "GDP": 188.44, "一般公共预算收入": 7.56, "一般公共预算支出": 40.06, "政府性基金收入": 2.18, "地方政府债务余额": 108.99, "层级": "county"}, {"序号": 198, "地区名称": "永善县", "地区代码": 530625, "省份": "云南省", "地级市": "昭通市", "区县": "永善县", "年份": 2025, "GDP": 182.78, "一般公共预算收入": 9.92, "一般公共预算支出": 41.33, "政府性基金收入": 2.34, "地方政府债务余额": 98.57, "层级": "county"}, {"序号": 199, "地区名称": "防城区", "地区代码": 450603, "省份": "广西壮族自治区", "地级市": "防城港市", "区县": "防城区", "年份": 2025, "GDP": 182.76, "一般公共预算收入": 6.75, "一般公共预算支出": 33.72, "政府性基金收入": 0.35, "地方政府债务余额": 37.71, "层级": "county"}, {"序号": 200, "地区名称": "平坝区", "地区代码": 520403, "省份": "贵州省", "地级市": "安顺市", "区县": "平坝区", "年份": 2025, "GDP": 182.34, "一般公共预算收入": 5.87, "一般公共预算支出": 25.5, "政府性基金收入": 7.98, "地方政府债务余额": 71.77, "层级": "county"}, {"序号": 201, "地区名称": "巧家县", "地区代码": 530622, "省份": "云南省", "地级市": "昭通市", "区县": "巧家县", "年份": 2025, "GDP": 181.0, "一般公共预算收入": 8.38, "一般公共预算支出": 41.38, "政府性基金收入": 1.76, "地方政府债务余额": 83.28, "层级": "county"}, {"序号": 202, "地区名称": "武宣县", "地区代码": 451323, "省份": "广西壮族自治区", "地级市": "来宾市", "区县": "武宣县", "年份": 2025, "GDP": 179.22, "一般公共预算收入": 10.11, "一般公共预算支出": 34.6, "政府性基金收入": 1.98, "地方政府债务余额": 72.66, "层级": "county"}, {"序号": 203, "地区名称": "彝良县", "地区代码": 530628, "省份": "云南省", "地级市": "昭通市", "区县": "彝良县", "年份": 2025, "GDP": 175.62, "一般公共预算收入": 8.67, "一般公共预算支出": 46.21, "政府性基金收入": 1.34, "地方政府债务余额": 107.22, "层级": "county"}, {"序号": 204, "地区名称": "龙里县", "地区代码": 522730, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "龙里县", "年份": 2025, "GDP": 174.81, "一般公共预算收入": 14.25, "一般公共预算支出": 37.4, "政府性基金收入": 27.99, "地方政府债务余额": 130.31, "层级": "county"}, {"序号": 205, "地区名称": "澜沧拉祜族自治县", "地区代码": 530828, "省份": "云南省", "地级市": "普洱市", "区县": "澜沧拉祜族自治县", "年份": 2025, "GDP": 174.67, "一般公共预算收入": 7.01, "一般公共预算支出": 44.04, "政府性基金收入": 3.19, "地方政府债务余额": 90.34, "层级": "county"}, {"序号": 206, "地区名称": "大姚县", "地区代码": 532326, "省份": "云南省", "地级市": "楚雄彝族自治州", "区县": "大姚县", "年份": 2025, "GDP": 172.56, "一般公共预算收入": 6.51, "一般公共预算支出": 25.87, "政府性基金收入": 1.22, "地方政府债务余额": 54.76, "层级": "county"}, {"序号": 207, "地区名称": "惠水县", "地区代码": 522731, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "惠水县", "年份": 2025, "GDP": 169.46, "一般公共预算收入": 7.15, "一般公共预算支出": 37.02, "政府性基金收入": 20.27, "地方政府债务余额": 97.77, "层级": "county"}, {"序号": 208, "地区名称": "景谷傣族彝族自治县", "地区代码": 530824, "省份": "云南省", "地级市": "普洱市", "区县": "景谷傣族彝族自治县", "年份": 2025, "GDP": 167.83, "一般公共预算收入": 5.52, "一般公共预算支出": 24.41, "政府性基金收入": 1.43, "地方政府债务余额": 54.7, "层级": "county"}, {"序号": 209, "地区名称": "沿河土家族自治县", "地区代码": 520627, "省份": "贵州省", "地级市": "铜仁市", "区县": "沿河土家族自治县", "年份": 2025, "GDP": 167.27, "一般公共预算收入": 4.29, "一般公共预算支出": 51.2, "政府性基金收入": 18.52, "地方政府债务余额": 135.36, "层级": "county"}, {"序号": 210, "地区名称": "德保县", "地区代码": 451024, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "德保县", "年份": 2025, "GDP": 166.77, "一般公共预算收入": 9.29, "一般公共预算支出": 35.14, "政府性基金收入": 1.91, "地方政府债务余额": 43.21, "层级": "county"}, {"序号": 211, "地区名称": "澄江市", "地区代码": 530481, "省份": "云南省", "地级市": "玉溪市", "区县": "澄江市", "年份": 2025, "GDP": 166.2, "一般公共预算收入": 7.85, "一般公共预算支出": 22.51, "政府性基金收入": 3.92, "地方政府债务余额": 142.15, "层级": "county"}, {"序号": 212, "地区名称": "云县", "地区代码": 530922, "省份": "云南省", "地级市": "临沧市", "区县": "云县", "年份": 2025, "GDP": 165.48, "一般公共预算收入": 7.21, "一般公共预算支出": 29.77, "政府性基金收入": 1.4, "地方政府债务余额": 55.5, "层级": "county"}, {"序号": 213, "地区名称": "普定县", "地区代码": 520422, "省份": "贵州省", "地级市": "安顺市", "区县": "普定县", "年份": 2025, "GDP": 165.24, "一般公共预算收入": 6.55, "一般公共预算支出": 32.41, "政府性基金收入": 13.71, "地方政府债务余额": 107.83, "层级": "county"}, {"序号": 214, "地区名称": "兴安县", "地区代码": 450325, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "兴安县", "年份": 2025, "GDP": 164.79, "一般公共预算收入": 5.2, "一般公共预算支出": 28.69, "政府性基金收入": 1.61, "地方政府债务余额": 54.79, "层级": "county"}, {"序号": 215, "地区名称": "耿马傣族佤族自治县", "地区代码": 530926, "省份": "云南省", "地级市": "临沧市", "区县": "耿马傣族佤族自治县", "年份": 2025, "GDP": 162.88, "一般公共预算收入": 5.21, "一般公共预算支出": 28.01, "政府性基金收入": 1.13, "地方政府债务余额": 56.93, "层级": "county"}, {"序号": 216, "地区名称": "石屏县", "地区代码": 532525, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "石屏县", "年份": 2025, "GDP": 162.61, "一般公共预算收入": 6.04, "一般公共预算支出": 26.95, "政府性基金收入": 1.8, "地方政府债务余额": 69.35, "层级": "county"}, {"序号": 217, "地区名称": "易门县", "地区代码": 530425, "省份": "云南省", "地级市": "玉溪市", "区县": "易门县", "年份": 2025, "GDP": 162.49, "一般公共预算收入": 6.82, "一般公共预算支出": 20.29, "政府性基金收入": 2.69, "地方政府债务余额": 39.52, "层级": "county"}, {"序号": 218, "地区名称": "瑞丽市", "地区代码": 533102, "省份": "云南省", "地级市": "德宏傣族景颇族自治州", "区县": "瑞丽市", "年份": 2025, "GDP": 162.25, "一般公共预算收入": 6.91, "一般公共预算支出": 30.74, "政府性基金收入": 4.46, "地方政府债务余额": 129.04, "层级": "county"}, {"序号": 219, "地区名称": "湄潭县", "地区代码": 520328, "省份": "贵州省", "地级市": "遵义市", "区县": "湄潭县", "年份": 2025, "GDP": 162.02, "一般公共预算收入": 5.05, "一般公共预算支出": 31.53, "政府性基金收入": 20.17, "地方政府债务余额": 105.05, "层级": "county"}, {"序号": 220, "地区名称": "正安县", "地区代码": 520324, "省份": "贵州省", "地级市": "遵义市", "区县": "正安县", "年份": 2025, "GDP": 161.64, "一般公共预算收入": 6.23, "一般公共预算支出": 40.97, "政府性基金收入": 8.85, "地方政府债务余额": 113.1, "层级": "county"}, {"序号": 221, "地区名称": "钟山县", "地区代码": 451122, "省份": "广西壮族自治区", "地级市": "贺州市", "区县": "钟山县", "年份": 2025, "GDP": 159.78, "一般公共预算收入": 4.94, "一般公共预算支出": 33.31, "政府性基金收入": 1.25, "地方政府债务余额": 43.1, "层级": "county"}, {"序号": 222, "地区名称": "贞丰县", "地区代码": 522325, "省份": "贵州省", "地级市": "黔西南布依族苗族自治州", "区县": "贞丰县", "年份": 2025, "GDP": 159.47, "一般公共预算收入": 8.37, "一般公共预算支出": 39.76, "政府性基金收入": 18.8, "地方政府债务余额": 105.84, "层级": "county"}, {"序号": 223, "地区名称": "石阡县", "地区代码": 520623, "省份": "贵州省", "地级市": "铜仁市", "区县": "石阡县", "年份": 2025, "GDP": 159.34, "一般公共预算收入": 3.65, "一般公共预算支出": 33.23, "政府性基金收入": 18.99, "地方政府债务余额": 99.25, "层级": "county"}, {"序号": 224, "地区名称": "元江哈尼族彝族傣族自治县", "地区代码": 530428, "省份": "云南省", "地级市": "玉溪市", "区县": "元江哈尼族彝族傣族自治县", "年份": 2025, "GDP": 159.26, "一般公共预算收入": 6.54, "一般公共预算支出": 21.55, "政府性基金收入": 2.38, "地方政府债务余额": 37.99, "层级": "county"}, {"序号": 225, "地区名称": "安龙县", "地区代码": 522328, "省份": "贵州省", "地级市": "黔西南布依族苗族自治州", "区县": "安龙县", "年份": 2025, "GDP": 159.12, "一般公共预算收入": 9.23, "一般公共预算支出": 37.58, "政府性基金收入": 24.03, "地方政府债务余额": 104.9, "层级": "county"}, {"序号": 226, "地区名称": "华宁县", "地区代码": 530424, "省份": "云南省", "地级市": "玉溪市", "区县": "华宁县", "年份": 2025, "GDP": 158.75, "一般公共预算收入": 7.11, "一般公共预算支出": 17.01, "政府性基金收入": 1.89, "地方政府债务余额": 43.01, "层级": "county"}, {"序号": 227, "地区名称": "印江土家族苗族自治县", "地区代码": 520625, "省份": "贵州省", "地级市": "铜仁市", "区县": "印江土家族苗族自治县", "年份": 2025, "GDP": 157.51, "一般公共预算收入": 3.52, "一般公共预算支出": 40.95, "政府性基金收入": 10.21, "地方政府债务余额": 77.67, "层级": "county"}, {"序号": 228, "地区名称": "宁明县", "地区代码": 451422, "省份": "广西壮族自治区", "地级市": "崇左市", "区县": "宁明县", "年份": 2025, "GDP": 157.36, "一般公共预算收入": 3.34, "一般公共预算支出": 41.46, "政府性基金收入": 1.32, "地方政府债务余额": 67.39, "层级": "county"}, {"序号": 229, "地区名称": "武定县", "地区代码": 532329, "省份": "云南省", "地级市": "楚雄彝族自治州", "区县": "武定县", "年份": 2025, "GDP": 155.77, "一般公共预算收入": 5.04, "一般公共预算支出": 25.96, "政府性基金收入": 0.36, "地方政府债务余额": 48.28, "层级": "county"}, {"序号": 230, "地区名称": "河口瑶族自治县", "地区代码": 532532, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "河口瑶族自治县", "年份": 2025, "GDP": 155.0, "一般公共预算收入": 2.89, "一般公共预算支出": 16.39, "政府性基金收入": 1.28, "地方政府债务余额": 53.15, "层级": "county"}, {"序号": 231, "地区名称": "平乐县", "地区代码": 450330, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "平乐县", "年份": 2025, "GDP": 154.97, "一般公共预算收入": 5.29, "一般公共预算支出": 26.4, "政府性基金收入": 0.39, "地方政府债务余额": 28.12, "层级": "county"}, {"序号": 232, "地区名称": "龙陵县", "地区代码": 530523, "省份": "云南省", "地级市": "保山市", "区县": "龙陵县", "年份": 2025, "GDP": 152.81, "一般公共预算收入": 6.66, "一般公共预算支出": 29.2, "政府性基金收入": 8.51, "地方政府债务余额": 95.0, "层级": "county"}, {"序号": 233, "地区名称": "绥阳县", "地区代码": 520323, "省份": "贵州省", "地级市": "遵义市", "区县": "绥阳县", "年份": 2025, "GDP": 151.71, "一般公共预算收入": 5.13, "一般公共预算支出": 32.98, "政府性基金收入": 17.84, "地方政府债务余额": 121.96, "层级": "county"}, {"序号": 234, "地区名称": "福绵区", "地区代码": 450903, "省份": "广西壮族自治区", "地级市": "玉林市", "区县": "福绵区", "年份": 2025, "GDP": 150.67, "一般公共预算收入": 4.35, "一般公共预算支出": 21.81, "政府性基金收入": 2.51, "地方政府债务余额": 57.88, "层级": "county"}, {"序号": 235, "地区名称": "马关县", "地区代码": 532625, "省份": "云南省", "地级市": "文山壮族苗族自治州", "区县": "马关县", "年份": 2025, "GDP": 150.36, "一般公共预算收入": 7.13, "一般公共预算支出": 37.27, "政府性基金收入": 0.74, "地方政府债务余额": 65.38, "层级": "county"}, {"序号": 236, "地区名称": "赤水市", "地区代码": 520381, "省份": "贵州省", "地级市": "遵义市", "区县": "赤水市", "年份": 2025, "GDP": 149.56, "一般公共预算收入": 4.67, "一般公共预算支出": 29.8, "政府性基金收入": 18.13, "地方政府债务余额": 121.26, "层级": "county"}, {"序号": 237, "地区名称": "融水苗族自治县", "地区代码": 450225, "省份": "广西壮族自治区", "地级市": "柳州市", "区县": "融水苗族自治县", "年份": 2025, "GDP": 147.56, "一般公共预算收入": 6.16, "一般公共预算支出": 42.64, "政府性基金收入": 0.68, "地方政府债务余额": 50.05, "层级": "county"}, {"序号": 238, "地区名称": "独山县", "地区代码": 522726, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "独山县", "年份": 2025, "GDP": 146.75, "一般公共预算收入": 5.62, "一般公共预算支出": 33.44, "政府性基金收入": 36.64, "地方政府债务余额": 207.6, "层级": "county"}, {"序号": 239, "地区名称": "象州县", "地区代码": 451322, "省份": "广西壮族自治区", "地级市": "来宾市", "区县": "象州县", "年份": 2025, "GDP": 146.04, "一般公共预算收入": 7.8, "一般公共预算支出": 28.2, "政府性基金收入": 5.23, "地方政府债务余额": 43.62, "层级": "county"}, {"序号": 240, "地区名称": "田林县", "地区代码": 451029, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "田林县", "年份": 2025, "GDP": 145.45, "一般公共预算收入": 7.0, "一般公共预算支出": 32.95, "政府性基金收入": 0.77, "地方政府债务余额": 36.38, "层级": "county"}, {"序号": 241, "地区名称": "盈江县", "地区代码": 533123, "省份": "云南省", "地级市": "德宏傣族景颇族自治州", "区县": "盈江县", "年份": 2025, "GDP": 144.48, "一般公共预算收入": 4.83, "一般公共预算支出": 26.91, "政府性基金收入": 0.78, "地方政府债务余额": 93.74, "层级": "county"}, {"序号": 242, "地区名称": "隆安县", "地区代码": 450123, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "隆安县", "年份": 2025, "GDP": 143.43, "一般公共预算收入": 8.72, "一般公共预算支出": 35.91, "政府性基金收入": 0.87, "地方政府债务余额": 34.1, "层级": "county"}, {"序号": 243, "地区名称": "丘北县", "地区代码": 532626, "省份": "云南省", "地级市": "文山壮族苗族自治州", "区县": "丘北县", "年份": 2025, "GDP": 143.27, "一般公共预算收入": 6.07, "一般公共预算支出": 43.27, "政府性基金收入": 0.98, "地方政府债务余额": 110.53, "层级": "county"}, {"序号": 244, "地区名称": "元谋县", "地区代码": 532328, "省份": "云南省", "地级市": "楚雄彝族自治州", "区县": "元谋县", "年份": 2025, "GDP": 142.83, "一般公共预算收入": 6.97, "一般公共预算支出": 21.67, "政府性基金收入": 3.0, "地方政府债务余额": 44.45, "层级": "county"}, {"序号": 245, "地区名称": "石林彝族自治县", "地区代码": 530126, "省份": "云南省", "地级市": "昆明市", "区县": "石林彝族自治县", "年份": 2025, "GDP": 140.79, "一般公共预算收入": 8.18, "一般公共预算支出": 25.2, "政府性基金收入": 1.02, "地方政府债务余额": 57.87, "层级": "county"}, {"序号": 246, "地区名称": "贵定县", "地区代码": 522723, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "贵定县", "年份": 2025, "GDP": 140.35, "一般公共预算收入": 8.25, "一般公共预算支出": 27.48, "政府性基金收入": 14.64, "地方政府债务余额": 96.57, "层级": "county"}, {"序号": 247, "地区名称": "永胜县", "地区代码": 530722, "省份": "云南省", "地级市": "丽江市", "区县": "永胜县", "年份": 2025, "GDP": 138.95, "一般公共预算收入": 4.56, "一般公共预算支出": 29.32, "政府性基金收入": 2.24, "地方政府债务余额": 62.31, "层级": "county"}, {"序号": 248, "地区名称": "镇宁布依族苗族自治县", "地区代码": 520423, "省份": "贵州省", "地级市": "安顺市", "区县": "镇宁布依族苗族自治县", "年份": 2025, "GDP": 137.75, "一般公共预算收入": 3.97, "一般公共预算支出": 26.46, "政府性基金收入": 8.44, "地方政府债务余额": 58.75, "层级": "county"}, {"序号": 249, "地区名称": "关岭布依族苗族自治县", "地区代码": 520424, "省份": "贵州省", "地级市": "安顺市", "区县": "关岭布依族苗族自治县", "年份": 2025, "GDP": 137.38, "一般公共预算收入": 4.11, "一般公共预算支出": 30.55, "政府性基金收入": 10.17, "地方政府债务余额": 69.46, "层级": "county"}, {"序号": 250, "地区名称": "荔浦市", "地区代码": 450381, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "荔浦市", "年份": 2025, "GDP": 136.45, "一般公共预算收入": 5.2, "一般公共预算支出": 25.06, "政府性基金收入": 1.64, "地方政府债务余额": 42.44, "层级": "county"}, {"序号": 251, "地区名称": "东川区", "地区代码": 530113, "省份": "云南省", "地级市": "昆明市", "区县": "东川区", "年份": 2025, "GDP": 135.53, "一般公共预算收入": 7.67, "一般公共预算支出": 34.01, "政府性基金收入": 1.88, "地方政府债务余额": 58.52, "层级": "county"}, {"序号": 252, "地区名称": "景东彝族自治县", "地区代码": 530823, "省份": "云南省", "地级市": "普洱市", "区县": "景东彝族自治县", "年份": 2025, "GDP": 134.47, "一般公共预算收入": 6.58, "一般公共预算支出": 28.66, "政府性基金收入": 1.76, "地方政府债务余额": 71.17, "层级": "county"}, {"序号": 253, "地区名称": "马龙区", "地区代码": 530304, "省份": "云南省", "地级市": "曲靖市", "区县": "马龙区", "年份": 2025, "GDP": 134.21, "一般公共预算收入": 7.11, "一般公共预算支出": 23.17, "政府性基金收入": 2.66, "地方政府债务余额": 78.62, "层级": "county"}, {"序号": 254, "地区名称": "玉龙纳西族自治县", "地区代码": 530721, "省份": "云南省", "地级市": "丽江市", "区县": "玉龙纳西族自治县", "年份": 2025, "GDP": 134.11, "一般公共预算收入": 8.46, "一般公共预算支出": 27.78, "政府性基金收入": 2.17, "地方政府债务余额": 66.47, "层级": "county"}, {"序号": 255, "地区名称": "大新县", "地区代码": 451424, "省份": "广西壮族自治区", "地级市": "崇左市", "区县": "大新县", "年份": 2025, "GDP": 133.99, "一般公共预算收入": 6.39, "一般公共预算支出": 35.33, "政府性基金收入": 1.61, "地方政府债务余额": 67.01, "层级": "county"}, {"序号": 256, "地区名称": "鲁甸县", "地区代码": 530621, "省份": "云南省", "地级市": "昭通市", "区县": "鲁甸县", "年份": 2025, "GDP": 133.33, "一般公共预算收入": 6.32, "一般公共预算支出": 40.92, "政府性基金收入": 4.83, "地方政府债务余额": 84.39, "层级": "county"}, {"序号": 257, "地区名称": "永德县", "地区代码": 530923, "省份": "云南省", "地级市": "临沧市", "区县": "永德县", "年份": 2025, "GDP": 130.52, "一般公共预算收入": 3.65, "一般公共预算支出": 25.3, "政府性基金收入": 0.54, "地方政府债务余额": 37.0, "层级": "county"}, {"序号": 258, "地区名称": "南华县", "地区代码": 532324, "省份": "云南省", "地级市": "楚雄彝族自治州", "区县": "南华县", "年份": 2025, "GDP": 130.19, "一般公共预算收入": 5.31, "一般公共预算支出": 21.68, "政府性基金收入": 1.17, "地方政府债务余额": 58.03, "层级": "county"}, {"序号": 259, "地区名称": "融安县", "地区代码": 450224, "省份": "广西壮族自治区", "地级市": "柳州市", "区县": "融安县", "年份": 2025, "GDP": 130.14, "一般公共预算收入": 4.55, "一般公共预算支出": 25.45, "政府性基金收入": 0.82, "地方政府债务余额": 36.26, "层级": "county"}, {"序号": 260, "地区名称": "弥渡县", "地区代码": 532925, "省份": "云南省", "地级市": "大理白族自治州", "区县": "弥渡县", "年份": 2025, "GDP": 128.11, "一般公共预算收入": 6.02, "一般公共预算支出": 29.17, "政府性基金收入": 0.78, "地方政府债务余额": 39.9, "层级": "county"}, {"序号": 261, "地区名称": "水富市", "地区代码": 530681, "省份": "云南省", "地级市": "昭通市", "区县": "水富市", "年份": 2025, "GDP": 127.18, "一般公共预算收入": 4.21, "一般公共预算支出": 16.99, "政府性基金收入": 4.33, "地方政府债务余额": 53.55, "层级": "county"}, {"序号": 262, "地区名称": "凭祥市", "地区代码": 451481, "省份": "广西壮族自治区", "地级市": "崇左市", "区县": "凭祥市", "年份": 2025, "GDP": 126.88, "一般公共预算收入": 6.33, "一般公共预算支出": 21.84, "政府性基金收入": 4.47, "地方政府债务余额": 80.51, "层级": "county"}, {"序号": 263, "地区名称": "墨江哈尼族自治县", "地区代码": 530822, "省份": "云南省", "地级市": "普洱市", "区县": "墨江哈尼族自治县", "年份": 2025, "GDP": 126.75, "一般公共预算收入": 5.13, "一般公共预算支出": 30.74, "政府性基金收入": 2.78, "地方政府债务余额": 54.07, "层级": "county"}, {"序号": 264, "地区名称": "华坪县", "地区代码": 530723, "省份": "云南省", "地级市": "丽江市", "区县": "华坪县", "年份": 2025, "GDP": 126.55, "一般公共预算收入": 4.65, "一般公共预算支出": 16.39, "政府性基金收入": 2.23, "地方政府债务余额": 59.12, "层级": "county"}, {"序号": 265, "地区名称": "永福县", "地区代码": 450326, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "永福县", "年份": 2025, "GDP": 126.24, "一般公共预算收入": 3.64, "一般公共预算支出": 22.0, "政府性基金收入": 0.83, "地方政府债务余额": 34.49, "层级": "county"}, {"序号": 266, "地区名称": "富川瑶族自治县", "地区代码": 451123, "省份": "广西壮族自治区", "地级市": "贺州市", "区县": "富川瑶族自治县", "年份": 2025, "GDP": 125.95, "一般公共预算收入": 3.38, "一般公共预算支出": 31.03, "政府性基金收入": 0.42, "地方政府债务余额": 40.45, "层级": "county"}, {"序号": 267, "地区名称": "隆林各族自治县", "地区代码": 451031, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "隆林各族自治县", "年份": 2025, "GDP": 125.86, "一般公共预算收入": 6.29, "一般公共预算支出": 35.63, "政府性基金收入": 0.66, "地方政府债务余额": 45.24, "层级": "county"}, {"序号": 268, "地区名称": "阳朔县", "地区代码": 450321, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "阳朔县", "年份": 2025, "GDP": 125.48, "一般公共预算收入": 3.92, "一般公共预算支出": 21.83, "政府性基金收入": 1.62, "地方政府债务余额": 35.63, "层级": "county"}, {"序号": 269, "地区名称": "上林县", "地区代码": 450125, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "上林县", "年份": 2025, "GDP": 125.19, "一般公共预算收入": 4.42, "一般公共预算支出": 31.65, "政府性基金收入": 0.7, "地方政府债务余额": 30.26, "层级": "county"}, {"序号": 270, "地区名称": "龙州县", "地区代码": 451423, "省份": "广西壮族自治区", "地级市": "崇左市", "区县": "龙州县", "年份": 2025, "GDP": 124.61, "一般公共预算收入": 6.86, "一般公共预算支出": 31.62, "政府性基金收入": 2.79, "地方政府债务余额": 67.28, "层级": "county"}, {"序号": 271, "地区名称": "威信县", "地区代码": 530629, "省份": "云南省", "地级市": "昭通市", "区县": "威信县", "年份": 2025, "GDP": 124.24, "一般公共预算收入": 4.13, "一般公共预算支出": 32.57, "政府性基金收入": 1.32, "地方政府债务余额": 76.93, "层级": "county"}, {"序号": 272, "地区名称": "黎平县", "地区代码": 522631, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "黎平县", "年份": 2025, "GDP": 123.19, "一般公共预算收入": 4.63, "一般公共预算支出": 45.56, "政府性基金收入": 8.39, "地方政府债务余额": 57.59, "层级": "county"}, {"序号": 273, "地区名称": "姚安县", "地区代码": 532325, "省份": "云南省", "地级市": "楚雄彝族自治州", "区县": "姚安县", "年份": 2025, "GDP": 122.58, "一般公共预算收入": 4.27, "一般公共预算支出": 18.55, "政府性基金收入": 0.89, "地方政府债务余额": 37.29, "层级": "county"}, {"序号": 274, "地区名称": "凤冈县", "地区代码": 520327, "省份": "贵州省", "地级市": "遵义市", "区县": "凤冈县", "年份": 2025, "GDP": 122.49, "一般公共预算收入": 3.96, "一般公共预算支出": 30.32, "政府性基金收入": 10.64, "地方政府债务余额": 75.46, "层级": "county"}, {"序号": 275, "地区名称": "马山县", "地区代码": 450124, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "马山县", "年份": 2025, "GDP": 120.23, "一般公共预算收入": 2.52, "一般公共预算支出": 37.58, "政府性基金收入": 0.72, "地方政府债务余额": 23.48, "层级": "county"}, {"序号": 276, "地区名称": "巍山彝族回族自治县", "地区代码": 532927, "省份": "云南省", "地级市": "大理白族自治州", "区县": "巍山彝族回族自治县", "年份": 2025, "GDP": 118.67, "一般公共预算收入": 3.88, "一般公共预算支出": 23.27, "政府性基金收入": 0.77, "地方政府债务余额": 43.66, "层级": "county"}, {"序号": 277, "地区名称": "平塘县", "地区代码": 522727, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "平塘县", "年份": 2025, "GDP": 118.13, "一般公共预算收入": 4.13, "一般公共预算支出": 29.71, "政府性基金收入": 8.59, "地方政府债务余额": 65.39, "层级": "county"}, {"序号": 278, "地区名称": "玉屏侗族自治县", "地区代码": 520622, "省份": "贵州省", "地级市": "铜仁市", "区县": "玉屏侗族自治县", "年份": 2025, "GDP": 117.53, "一般公共预算收入": 5.5, "一般公共预算支出": 26.87, "政府性基金收入": 10.36, "地方政府债务余额": 116.59, "层级": "county"}, {"序号": 279, "地区名称": "南涧彝族自治县", "地区代码": 532926, "省份": "云南省", "地级市": "大理白族自治州", "区县": "南涧彝族自治县", "年份": 2025, "GDP": 117.25, "一般公共预算收入": 3.33, "一般公共预算支出": 20.45, "政府性基金收入": 0.3, "地方政府债务余额": 39.18, "层级": "county"}, {"序号": 280, "地区名称": "牟定县", "地区代码": 532323, "省份": "云南省", "地级市": "楚雄彝族自治州", "区县": "牟定县", "年份": 2025, "GDP": 116.88, "一般公共预算收入": 5.31, "一般公共预算支出": 19.39, "政府性基金收入": 2.83, "地方政府债务余额": 53.18, "层级": "county"}, {"序号": 281, "地区名称": "麻栗坡县", "地区代码": 532624, "省份": "云南省", "地级市": "文山壮族苗族自治州", "区县": "麻栗坡县", "年份": 2025, "GDP": 115.91, "一般公共预算收入": 3.93, "一般公共预算支出": 28.65, "政府性基金收入": 1.2, "地方政府债务余额": 81.44, "层级": "county"}, {"序号": 282, "地区名称": "泸水市", "地区代码": 533301, "省份": "云南省", "地级市": "怒江傈僳族自治州", "区县": "泸水市", "年份": 2025, "GDP": 115.79, "一般公共预算收入": 3.02, "一般公共预算支出": 32.46, "政府性基金收入": 2.74, "地方政府债务余额": 52.84, "层级": "county"}, {"序号": 283, "地区名称": "三都水族自治县", "地区代码": 522732, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "三都水族自治县", "年份": 2025, "GDP": 114.69, "一般公共预算收入": 4.28, "一般公共预算支出": 34.51, "政府性基金收入": 30.07, "地方政府债务余额": 149.02, "层级": "county"}, {"序号": 284, "地区名称": "上思县", "地区代码": 450621, "省份": "广西壮族自治区", "地级市": "防城港市", "区县": "上思县", "年份": 2025, "GDP": 114.58, "一般公共预算收入": 5.83, "一般公共预算支出": 23.43, "政府性基金收入": 0.4, "地方政府债务余额": 28.47, "层级": "county"}, {"序号": 285, "地区名称": "罗甸县", "地区代码": 522728, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "罗甸县", "年份": 2025, "GDP": 114.38, "一般公共预算收入": 5.39, "一般公共预算支出": 36.45, "政府性基金收入": 9.39, "地方政府债务余额": 60.17, "层级": "county"}, {"序号": 286, "地区名称": "望谟县", "地区代码": 522326, "省份": "贵州省", "地级市": "黔西南布依族苗族自治州", "区县": "望谟县", "年份": 2025, "GDP": 114.32, "一般公共预算收入": 3.34, "一般公共预算支出": 37.88, "政府性基金收入": 9.9, "地方政府债务余额": 65.42, "层级": "county"}, {"序号": 287, "地区名称": "余庆县", "地区代码": 520329, "省份": "贵州省", "地级市": "遵义市", "区县": "余庆县", "年份": 2025, "GDP": 113.86, "一般公共预算收入": 3.14, "一般公共预算支出": 23.44, "政府性基金收入": 16.19, "地方政府债务余额": 88.61, "层级": "county"}, {"序号": 288, "地区名称": "元阳县", "地区代码": 532528, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "元阳县", "年份": 2025, "GDP": 113.14, "一般公共预算收入": 3.23, "一般公共预算支出": 26.76, "政府性基金收入": 0.27, "地方政府债务余额": 27.28, "层级": "county"}, {"序号": 289, "地区名称": "施甸县", "地区代码": 530521, "省份": "云南省", "地级市": "保山市", "区县": "施甸县", "年份": 2025, "GDP": 112.17, "一般公共预算收入": 4.09, "一般公共预算支出": 26.01, "政府性基金收入": 1.83, "地方政府债务余额": 114.49, "层级": "county"}, {"序号": 290, "地区名称": "兰坪白族普米族自治县", "地区代码": 533325, "省份": "云南省", "地级市": "怒江傈僳族自治州", "区县": "兰坪白族普米族自治县", "年份": 2025, "GDP": 111.64, "一般公共预算收入": 5.6, "一般公共预算支出": 33.08, "政府性基金收入": 0.95, "地方政府债务余额": 74.58, "层级": "county"}, {"序号": 291, "地区名称": "道真仡佬族苗族自治县", "地区代码": 520325, "省份": "贵州省", "地级市": "遵义市", "区县": "道真仡佬族苗族自治县", "年份": 2025, "GDP": 111.27, "一般公共预算收入": 5.35, "一般公共预算支出": 36.32, "政府性基金收入": 19.17, "地方政府债务余额": 92.25, "层级": "county"}, {"序号": 292, "地区名称": "富民县", "地区代码": 530124, "省份": "云南省", "地级市": "昆明市", "区县": "富民县", "年份": 2025, "GDP": 111.27, "一般公共预算收入": 4.6, "一般公共预算支出": 15.38, "政府性基金收入": 4.36, "地方政府债务余额": 37.0, "层级": "county"}, {"序号": 293, "地区名称": "昭平县", "地区代码": 451121, "省份": "广西壮族自治区", "地级市": "贺州市", "区县": "昭平县", "年份": 2025, "GDP": 110.71, "一般公共预算收入": 3.88, "一般公共预算支出": 32.16, "政府性基金收入": 1.14, "地方政府债务余额": 41.88, "层级": "county"}, {"序号": 294, "地区名称": "务川仡佬族苗族自治县", "地区代码": 520326, "省份": "贵州省", "地级市": "遵义市", "区县": "务川仡佬族苗族自治县", "年份": 2025, "GDP": 110.12, "一般公共预算收入": 4.84, "一般公共预算支出": 37.34, "政府性基金收入": 12.8, "地方政府债务余额": 104.44, "层级": "county"}, {"序号": 295, "地区名称": "紫云苗族布依族自治县", "地区代码": 520425, "省份": "贵州省", "地级市": "安顺市", "区县": "紫云苗族布依族自治县", "年份": 2025, "GDP": 109.37, "一般公共预算收入": 3.02, "一般公共预算支出": 32.23, "政府性基金收入": 3.33, "地方政府债务余额": 68.96, "层级": "county"}, {"序号": 296, "地区名称": "榕江县", "地区代码": 522632, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "榕江县", "年份": 2025, "GDP": 109.14, "一般公共预算收入": 3.81, "一般公共预算支出": 39.8, "政府性基金收入": 3.66, "地方政府债务余额": 48.2, "层级": "county"}, {"序号": 297, "地区名称": "环江毛南族自治县", "地区代码": 451226, "省份": "广西壮族自治区", "地级市": "河池市", "区县": "环江毛南族自治县", "年份": 2025, "GDP": 108.98, "一般公共预算收入": 4.14, "一般公共预算支出": 36.16, "政府性基金收入": 1.0, "地方政府债务余额": 48.53, "层级": "county"}, {"序号": 298, "地区名称": "盐津县", "地区代码": 530623, "省份": "云南省", "地级市": "昭通市", "区县": "盐津县", "年份": 2025, "GDP": 108.45, "一般公共预算收入": 3.3, "一般公共预算支出": 35.59, "政府性基金收入": 2.91, "地方政府债务余额": 71.51, "层级": "county"}, {"序号": 299, "地区名称": "秀峰区", "地区代码": 450302, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "秀峰区", "年份": 2025, "GDP": 108.04, "一般公共预算收入": 2.31, "一般公共预算支出": 7.56, "政府性基金收入": null, "地方政府债务余额": 21.44, "层级": "county"}, {"序号": 300, "地区名称": "普安县", "地区代码": 522323, "省份": "贵州省", "地级市": "黔西南布依族苗族自治州", "区县": "普安县", "年份": 2025, "GDP": 107.85, "一般公共预算收入": 5.77, "一般公共预算支出": 45.94, "政府性基金收入": 17.44, "地方政府债务余额": 70.82, "层级": "county"}, {"序号": 301, "地区名称": "恭城瑶族自治县", "地区代码": 450332, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "恭城瑶族自治县", "年份": 2025, "GDP": 107.75, "一般公共预算收入": 5.69, "一般公共预算支出": 25.16, "政府性基金收入": 0.65, "地方政府债务余额": 30.06, "层级": "county"}, {"序号": 302, "地区名称": "金平苗族瑶族傣族自治县", "地区代码": 532530, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "金平苗族瑶族傣族自治县", "年份": 2025, "GDP": 107.05, "一般公共预算收入": 2.43, "一般公共预算支出": 29.36, "政府性基金收入": 0.13, "地方政府债务余额": 16.07, "层级": "county"}, {"序号": 303, "地区名称": "都安瑶族自治县", "地区代码": 451228, "省份": "广西壮族自治区", "地级市": "河池市", "区县": "都安瑶族自治县", "年份": 2025, "GDP": 106.65, "一般公共预算收入": 4.41, "一般公共预算支出": 52.49, "政府性基金收入": 0.98, "地方政府债务余额": 61.33, "层级": "county"}, {"序号": 304, "地区名称": "长顺县", "地区代码": 522729, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "长顺县", "年份": 2025, "GDP": 106.03, "一般公共预算收入": 4.21, "一般公共预算支出": 27.69, "政府性基金收入": 12.69, "地方政府债务余额": 73.37, "层级": "county"}, {"序号": 305, "地区名称": "叠彩区", "地区代码": 450303, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "叠彩区", "年份": 2025, "GDP": 105.46, "一般公共预算收入": 2.18, "一般公共预算支出": 7.55, "政府性基金收入": 0.26, "地方政府债务余额": 18.81, "层级": "county"}, {"序号": 306, "地区名称": "晴隆县", "地区代码": 522324, "省份": "贵州省", "地级市": "黔西南布依族苗族自治州", "区县": "晴隆县", "年份": 2025, "GDP": 104.97, "一般公共预算收入": 4.11, "一般公共预算支出": 34.69, "政府性基金收入": 9.01, "地方政府债务余额": null, "层级": "county"}, {"序号": 307, "地区名称": "天柱县", "地区代码": 522627, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "天柱县", "年份": 2025, "GDP": 104.05, "一般公共预算收入": 4.91, "一般公共预算支出": 33.41, "政府性基金收入": 6.22, "地方政府债务余额": 36.17, "层级": "county"}, {"序号": 308, "地区名称": "万山区", "地区代码": 520603, "省份": "贵州省", "地级市": "铜仁市", "区县": "万山区", "年份": 2025, "GDP": 102.02, "一般公共预算收入": 4.98, "一般公共预算支出": 23.9, "政府性基金收入": 14.21, "地方政府债务余额": 94.18, "层级": "county"}, {"序号": 309, "地区名称": "忻城县", "地区代码": 451321, "省份": "广西壮族自治区", "地级市": "来宾市", "区县": "忻城县", "年份": 2025, "GDP": 101.48, "一般公共预算收入": 4.56, "一般公共预算支出": 31.87, "政府性基金收入": 0.79, "地方政府债务余额": 37.22, "层级": "county"}, {"序号": 310, "地区名称": "罗城仫佬族自治县", "地区代码": 451225, "省份": "广西壮族自治区", "地级市": "河池市", "区县": "罗城仫佬族自治县", "年份": 2025, "GDP": 101.24, "一般公共预算收入": 4.11, "一般公共预算支出": 35.78, "政府性基金收入": 0.44, "地方政府债务余额": 35.65, "层级": "county"}, {"序号": 311, "地区名称": "大关县", "地区代码": 530624, "省份": "云南省", "地级市": "昭通市", "区县": "大关县", "年份": 2025, "GDP": 100.68, "一般公共预算收入": 3.76, "一般公共预算支出": 30.68, "政府性基金收入": 0.3, "地方政府债务余额": 67.25, "层级": "county"}, {"序号": 312, "地区名称": "东兴市", "地区代码": 450681, "省份": "广西壮族自治区", "地级市": "防城港市", "区县": "东兴市", "年份": 2025, "GDP": 100.07, "一般公共预算收入": 4.22, "一般公共预算支出": 26.13, "政府性基金收入": 1.53, "地方政府债务余额": 49.51, "层级": "county"}, {"序号": 313, "地区名称": "江口县", "地区代码": 520621, "省份": "贵州省", "地级市": "铜仁市", "区县": "江口县", "年份": 2025, "GDP": 100.02, "一般公共预算收入": 3.24, "一般公共预算支出": 28.6, "政府性基金收入": 12.76, "地方政府债务余额": 70.26, "层级": "county"}, {"序号": 314, "地区名称": "宁蒗彝族自治县", "地区代码": 530724, "省份": "云南省", "地级市": "丽江市", "区县": "宁蒗彝族自治县", "年份": 2025, "GDP": 100.0, "一般公共预算收入": 4.04, "一般公共预算支出": 30.59, "政府性基金收入": 2.81, "地方政府债务余额": 84.1, "层级": "county"}, {"序号": 315, "地区名称": "苍梧县", "地区代码": 450421, "省份": "广西壮族自治区", "地级市": "梧州市", "区县": "苍梧县", "年份": 2025, "GDP": 99.11, "一般公共预算收入": 4.41, "一般公共预算支出": 27.76, "政府性基金收入": 1.91, "地方政府债务余额": 51.98, "层级": "county"}, {"序号": 316, "地区名称": "镇沅彝族哈尼族拉祜族自治县", "地区代码": 530825, "省份": "云南省", "地级市": "普洱市", "区县": "镇沅彝族哈尼族拉祜族自治县", "年份": 2025, "GDP": 98.65, "一般公共预算收入": 3.44, "一般公共预算支出": 19.71, "政府性基金收入": 0.95, "地方政府债务余额": 39.24, "层级": "county"}, {"序号": 317, "地区名称": "大化瑶族自治县", "地区代码": 451229, "省份": "广西壮族自治区", "地级市": "河池市", "区县": "大化瑶族自治县", "年份": 2025, "GDP": 98.19, "一般公共预算收入": 3.54, "一般公共预算支出": 38.86, "政府性基金收入": 0.49, "地方政府债务余额": 47.92, "层级": "county"}, {"序号": 318, "地区名称": "洱源县", "地区代码": 532930, "省份": "云南省", "地级市": "大理白族自治州", "区县": "洱源县", "年份": 2025, "GDP": 97.52, "一般公共预算收入": 4.19, "一般公共预算支出": 25.42, "政府性基金收入": 0.54, "地方政府债务余额": 57.34, "层级": "county"}, {"序号": 319, "地区名称": "永平县", "地区代码": 532928, "省份": "云南省", "地级市": "大理白族自治州", "区县": "永平县", "年份": 2025, "GDP": 97.14, "一般公共预算收入": 3.48, "一般公共预算支出": 20.07, "政府性基金收入": 0.39, "地方政府债务余额": 50.05, "层级": "county"}, {"序号": 320, "地区名称": "红河县", "地区代码": 532529, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "红河县", "年份": 2025, "GDP": 95.78, "一般公共预算收入": 1.82, "一般公共预算支出": 23.3, "政府性基金收入": 0.36, "地方政府债务余额": 35.41, "层级": "county"}, {"序号": 321, "地区名称": "双江拉祜族佤族布朗族傣族自治县", "地区代码": 530925, "省份": "云南省", "地级市": "临沧市", "区县": "双江拉祜族佤族布朗族傣族自治县", "年份": 2025, "GDP": 95.39, "一般公共预算收入": 3.48, "一般公共预算支出": 19.11, "政府性基金收入": 0.57, "地方政府债务余额": 49.58, "层级": "county"}, {"序号": 322, "地区名称": "从江县", "地区代码": 522633, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "从江县", "年份": 2025, "GDP": 95.35, "一般公共预算收入": 3.76, "一般公共预算支出": 37.57, "政府性基金收入": 3.35, "地方政府债务余额": 72.08, "层级": "county"}, {"序号": 323, "地区名称": "册亨县", "地区代码": 522327, "省份": "贵州省", "地级市": "黔西南布依族苗族自治州", "区县": "册亨县", "年份": 2025, "GDP": 93.17, "一般公共预算收入": 2.34, "一般公共预算支出": 28.81, "政府性基金收入": 14.17, "地方政府债务余额": 54.88, "层级": "county"}, {"序号": 324, "地区名称": "蒙山县", "地区代码": 450423, "省份": "广西壮族自治区", "地级市": "梧州市", "区县": "蒙山县", "年份": 2025, "GDP": 93.14, "一般公共预算收入": 2.93, "一般公共预算支出": 17.44, "政府性基金收入": 0.36, "地方政府债务余额": 25.07, "层级": "county"}, {"序号": 325, "地区名称": "天等县", "地区代码": 451425, "省份": "广西壮族自治区", "地级市": "崇左市", "区县": "天等县", "年份": 2025, "GDP": 92.94, "一般公共预算收入": 4.48, "一般公共预算支出": 38.77, "政府性基金收入": 0.7, "地方政府债务余额": 44.91, "层级": "county"}, {"序号": 326, "地区名称": "云龙县", "地区代码": 532929, "省份": "云南省", "地级市": "大理白族自治州", "区县": "云龙县", "年份": 2025, "GDP": 90.97, "一般公共预算收入": 3.28, "一般公共预算支出": 22.38, "政府性基金收入": 0.03, "地方政府债务余额": 55.63, "层级": "county"}, {"序号": 327, "地区名称": "天峨县", "地区代码": 451222, "省份": "广西壮族自治区", "地级市": "河池市", "区县": "天峨县", "年份": 2025, "GDP": 90.02, "一般公共预算收入": 2.56, "一般公共预算支出": 19.4, "政府性基金收入": 0.37, "地方政府债务余额": 29.96, "层级": "county"}, {"序号": 328, "地区名称": "双柏县", "地区代码": 532322, "省份": "云南省", "地级市": "楚雄彝族自治州", "区县": "双柏县", "年份": 2025, "GDP": 88.56, "一般公共预算收入": 4.49, "一般公共预算支出": 18.14, "政府性基金收入": 0.65, "地方政府债务余额": 32.86, "层级": "county"}, {"序号": 329, "地区名称": "镇康县", "地区代码": 530924, "省份": "云南省", "地级市": "临沧市", "区县": "镇康县", "年份": 2025, "GDP": 88.08, "一般公共预算收入": 3.73, "一般公共预算支出": 22.61, "政府性基金收入": 0.18, "地方政府债务余额": 35.49, "层级": "county"}, {"序号": 330, "地区名称": "巴马瑶族自治县", "地区代码": 451227, "省份": "广西壮族自治区", "地级市": "河池市", "区县": "巴马瑶族自治县", "年份": 2025, "GDP": 87.96, "一般公共预算收入": 4.69, "一般公共预算支出": 30.53, "政府性基金收入": 0.3, "地方政府债务余额": 54.74, "层级": "county"}, {"序号": 331, "地区名称": "三江侗族自治县", "地区代码": 450226, "省份": "广西壮族自治区", "地级市": "柳州市", "区县": "三江侗族自治县", "年份": 2025, "GDP": 87.77, "一般公共预算收入": 2.11, "一般公共预算支出": 33.74, "政府性基金收入": 1.29, "地方政府债务余额": 29.73, "层级": "county"}, {"序号": 332, "地区名称": "灌阳县", "地区代码": 450327, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "灌阳县", "年份": 2025, "GDP": 87.53, "一般公共预算收入": 3.49, "一般公共预算支出": 23.42, "政府性基金收入": 1.28, "地方政府债务余额": 24.14, "层级": "county"}, {"序号": 333, "地区名称": "宁洱哈尼族彝族自治县", "地区代码": 530821, "省份": "云南省", "地级市": "普洱市", "区县": "宁洱哈尼族彝族自治县", "年份": 2025, "GDP": 87.43, "一般公共预算收入": 2.79, "一般公共预算支出": 17.68, "政府性基金收入": 1.55, "地方政府债务余额": 60.95, "层级": "county"}, {"序号": 334, "地区名称": "永仁县", "地区代码": 532327, "省份": "云南省", "地级市": "楚雄彝族自治州", "区县": "永仁县", "年份": 2025, "GDP": 85.52, "一般公共预算收入": 4.58, "一般公共预算支出": 15.52, "政府性基金收入": 1.13, "地方政府债务余额": 29.04, "层级": "county"}, {"序号": 335, "地区名称": "荔波县", "地区代码": 522722, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "荔波县", "年份": 2025, "GDP": 84.07, "一般公共预算收入": 6.06, "一般公共预算支出": 25.3, "政府性基金收入": 37.4, "地方政府债务余额": 112.41, "层级": "county"}, {"序号": 336, "地区名称": "屏边苗族自治县", "地区代码": 532523, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "屏边苗族自治县", "年份": 2025, "GDP": 82.7, "一般公共预算收入": 2.05, "一般公共预算支出": 17.57, "政府性基金收入": 0.24, "地方政府债务余额": 23.64, "层级": "county"}, {"序号": 337, "地区名称": "陇川县", "地区代码": 533124, "省份": "云南省", "地级市": "德宏傣族景颇族自治州", "区县": "陇川县", "年份": 2025, "GDP": 81.6, "一般公共预算收入": 2.56, "一般公共预算支出": 22.53, "政府性基金收入": 0.84, "地方政府债务余额": 53.7, "层级": "county"}, {"序号": 338, "地区名称": "黄平县", "地区代码": 522622, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "黄平县", "年份": 2025, "GDP": 80.3, "一般公共预算收入": 2.85, "一般公共预算支出": 25.63, "政府性基金收入": 4.54, "地方政府债务余额": 68.34, "层级": "county"}, {"序号": 339, "地区名称": "剑川县", "地区代码": 532931, "省份": "云南省", "地级市": "大理白族自治州", "区县": "剑川县", "年份": 2025, "GDP": 78.58, "一般公共预算收入": 3.69, "一般公共预算支出": 19.78, "政府性基金收入": 0.39, "地方政府债务余额": 35.12, "层级": "county"}, {"序号": 340, "地区名称": "镇远县", "地区代码": 522625, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "镇远县", "年份": 2025, "GDP": 78.57, "一般公共预算收入": 3.93, "一般公共预算支出": 20.67, "政府性基金收入": 10.98, "地方政府债务余额": 56.28, "层级": "county"}, {"序号": 341, "地区名称": "西畴县", "地区代码": 532623, "省份": "云南省", "地级市": "文山壮族苗族自治州", "区县": "西畴县", "年份": 2025, "GDP": 76.47, "一般公共预算收入": 3.02, "一般公共预算支出": 24.3, "政府性基金收入": 0.89, "地方政府债务余额": 66.64, "层级": "county"}, {"序号": 342, "地区名称": "岑巩县", "地区代码": 522626, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "岑巩县", "年份": 2025, "GDP": 75.91, "一般公共预算收入": 2.76, "一般公共预算支出": 24.57, "政府性基金收入": 5.87, "地方政府债务余额": 58.82, "层级": "county"}, {"序号": 343, "地区名称": "江城哈尼族彝族自治县", "地区代码": 530826, "省份": "云南省", "地级市": "普洱市", "区县": "江城哈尼族彝族自治县", "年份": 2025, "GDP": 73.85, "一般公共预算收入": 1.84, "一般公共预算支出": 16.9, "政府性基金收入": 0.79, "地方政府债务余额": 33.18, "层级": "county"}, {"序号": 344, "地区名称": "沧源佤族自治县", "地区代码": 530927, "省份": "云南省", "地级市": "临沧市", "区县": "沧源佤族自治县", "年份": 2025, "GDP": 73.13, "一般公共预算收入": 3.76, "一般公共预算支出": 24.03, "政府性基金收入": 0.46, "地方政府债务余额": 44.29, "层级": "county"}, {"序号": 345, "地区名称": "孟连傣族拉祜族佤族自治县", "地区代码": 530827, "省份": "云南省", "地级市": "普洱市", "区县": "孟连傣族拉祜族佤族自治县", "年份": 2025, "GDP": 71.59, "一般公共预算收入": 1.76, "一般公共预算支出": 16.64, "政府性基金收入": 1.48, "地方政府债务余额": 41.08, "层级": "county"}, {"序号": 346, "地区名称": "剑河县", "地区代码": 522629, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "剑河县", "年份": 2025, "GDP": 71.09, "一般公共预算收入": 2.64, "一般公共预算支出": 32.24, "政府性基金收入": 8.39, "地方政府债务余额": 47.3, "层级": "county"}, {"序号": 347, "地区名称": "东兰县", "地区代码": 451224, "省份": "广西壮族自治区", "地级市": "河池市", "区县": "东兰县", "年份": 2025, "GDP": 70.76, "一般公共预算收入": 2.38, "一般公共预算支出": 30.95, "政府性基金收入": 0.47, "地方政府债务余额": 50.0, "层级": "county"}, {"序号": 348, "地区名称": "凌云县", "地区代码": 451027, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "凌云县", "年份": 2025, "GDP": 68.82, "一般公共预算收入": 2.12, "一般公共预算支出": 23.95, "政府性基金收入": 0.49, "地方政府债务余额": 34.76, "层级": "county"}, {"序号": 349, "地区名称": "龙胜各族自治县", "地区代码": 450328, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "龙胜各族自治县", "年份": 2025, "GDP": 68.45, "一般公共预算收入": 3.06, "一般公共预算支出": 21.14, "政府性基金收入": 0.62, "地方政府债务余额": 21.0, "层级": "county"}, {"序号": 350, "地区名称": "绿春县", "地区代码": 532531, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "绿春县", "年份": 2025, "GDP": 68.27, "一般公共预算收入": 1.63, "一般公共预算支出": 21.99, "政府性基金收入": 2.03, "地方政府债务余额": 35.78, "层级": "county"}, {"序号": 351, "地区名称": "锦屏县", "地区代码": 522628, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "锦屏县", "年份": 2025, "GDP": 68.02, "一般公共预算收入": 2.61, "一般公共预算支出": 23.28, "政府性基金收入": 2.22, "地方政府债务余额": 35.54, "层级": "county"}, {"序号": 352, "地区名称": "西林县", "地区代码": 451030, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "西林县", "年份": 2025, "GDP": 67.12, "一般公共预算收入": 1.94, "一般公共预算支出": 21.54, "政府性基金收入": 0.4, "地方政府债务余额": 31.88, "层级": "county"}, {"序号": 353, "地区名称": "金秀瑶族自治县", "地区代码": 451324, "省份": "广西壮族自治区", "地级市": "来宾市", "区县": "金秀瑶族自治县", "年份": 2025, "GDP": 66.63, "一般公共预算收入": 3.18, "一般公共预算支出": 20.39, "政府性基金收入": 0.64, "地方政府债务余额": 34.71, "层级": "county"}, {"序号": 354, "地区名称": "资源县", "地区代码": 450329, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "资源县", "年份": 2025, "GDP": 65.67, "一般公共预算收入": 2.31, "一般公共预算支出": 19.76, "政府性基金收入": 0.41, "地方政府债务余额": 22.19, "层级": "county"}, {"序号": 355, "地区名称": "三穗县", "地区代码": 522624, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "三穗县", "年份": 2025, "GDP": 63.42, "一般公共预算收入": 2.74, "一般公共预算支出": 22.42, "政府性基金收入": 7.3, "地方政府债务余额": 38.05, "层级": "county"}, {"序号": 356, "地区名称": "维西傈僳族自治县", "地区代码": 533423, "省份": "云南省", "地级市": "迪庆藏族自治州", "区县": "维西傈僳族自治县", "年份": 2025, "GDP": 63.25, "一般公共预算收入": 1.97, "一般公共预算支出": 27.11, "政府性基金收入": 0.71, "地方政府债务余额": 43.41, "层级": "county"}, {"序号": 357, "地区名称": "德钦县", "地区代码": 533422, "省份": "云南省", "地级市": "迪庆藏族自治州", "区县": "德钦县", "年份": 2025, "GDP": 62.28, "一般公共预算收入": 2.28, "一般公共预算支出": 36.1, "政府性基金收入": 0.0, "地方政府债务余额": 16.51, "层级": "county"}, {"序号": 358, "地区名称": "绥江县", "地区代码": 530626, "省份": "云南省", "地级市": "昭通市", "区县": "绥江县", "年份": 2025, "GDP": 62.0, "一般公共预算收入": 3.79, "一般公共预算支出": 18.81, "政府性基金收入": 0.31, "地方政府债务余额": 34.85, "层级": "county"}, {"序号": 359, "地区名称": "那坡县", "地区代码": 451026, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "那坡县", "年份": 2025, "GDP": 61.41, "一般公共预算收入": 3.4, "一般公共预算支出": 28.37, "政府性基金收入": 0.77, "地方政府债务余额": 20.65, "层级": "county"}, {"序号": 360, "地区名称": "台江县", "地区代码": 522630, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "台江县", "年份": 2025, "GDP": 59.69, "一般公共预算收入": 2.82, "一般公共预算支出": 25.53, "政府性基金收入": 7.42, "地方政府债务余额": 41.07, "层级": "county"}, {"序号": 361, "地区名称": "麻江县", "地区代码": 522635, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "麻江县", "年份": 2025, "GDP": 56.53, "一般公共预算收入": 2.22, "一般公共预算支出": 17.5, "政府性基金收入": 4.78, "地方政府债务余额": 45.12, "层级": "county"}, {"序号": 362, "地区名称": "丹寨县", "地区代码": 522636, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "丹寨县", "年份": 2025, "GDP": 56.03, "一般公共预算收入": 1.96, "一般公共预算支出": 17.49, "政府性基金收入": 3.26, "地方政府债务余额": 37.62, "层级": "county"}, {"序号": 363, "地区名称": "雷山县", "地区代码": 522634, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "雷山县", "年份": 2025, "GDP": 53.33, "一般公共预算收入": 2.08, "一般公共预算支出": 18.34, "政府性基金收入": 5.73, "地方政府债务余额": 36.04, "层级": "county"}, {"序号": 364, "地区名称": "漾濞彝族自治县", "地区代码": 532922, "省份": "云南省", "地级市": "大理白族自治州", "区县": "漾濞彝族自治县", "年份": 2025, "GDP": 51.5, "一般公共预算收入": 2.81, "一般公共预算支出": 16.28, "政府性基金收入": 0.33, "地方政府债务余额": 26.65, "层级": "county"}, {"序号": 365, "地区名称": "施秉县", "地区代码": 522623, "省份": "贵州省", "地级市": "黔东南苗族侗族自治州", "区县": "施秉县", "年份": 2025, "GDP": 51.39, "一般公共预算收入": 2.0, "一般公共预算支出": 16.89, "政府性基金收入": 5.2, "地方政府债务余额": 40.85, "层级": "county"}, {"序号": 366, "地区名称": "合山市", "地区代码": 451381, "省份": "广西壮族自治区", "地级市": "来宾市", "区县": "合山市", "年份": 2025, "GDP": 50.27, "一般公共预算收入": 2.25, "一般公共预算支出": 12.96, "政府性基金收入": 0.21, "地方政府债务余额": 9.72, "层级": "county"}, {"序号": 367, "地区名称": "梁河县", "地区代码": 533122, "省份": "云南省", "地级市": "德宏傣族景颇族自治州", "区县": "梁河县", "年份": 2025, "GDP": 48.9, "一般公共预算收入": 2.62, "一般公共预算支出": 17.22, "政府性基金收入": 1.26, "地方政府债务余额": 31.44, "层级": "county"}, {"序号": 368, "地区名称": "乐业县", "地区代码": 451028, "省份": "广西壮族自治区", "地级市": "百色市", "区县": "乐业县", "年份": 2025, "GDP": 46.45, "一般公共预算收入": 2.7, "一般公共预算支出": 20.2, "政府性基金收入": 0.28, "地方政府债务余额": 29.56, "层级": "county"}, {"序号": 369, "地区名称": "雁山区", "地区代码": 450311, "省份": "广西壮族自治区", "地级市": "桂林市", "区县": "雁山区", "年份": 2025, "GDP": 45.81, "一般公共预算收入": 0.55, "一般公共预算支出": 7.47, "政府性基金收入": 0.43, "地方政府债务余额": 15.98, "层级": "county"}, {"序号": 370, "地区名称": "凤山县", "地区代码": 451223, "省份": "广西壮族自治区", "地级市": "河池市", "区县": "凤山县", "年份": 2025, "GDP": 44.27, "一般公共预算收入": 1.42, "一般公共预算支出": 24.49, "政府性基金收入": 0.86, "地方政府债务余额": 30.11, "层级": "county"}, {"序号": 371, "地区名称": "西盟佤族自治县", "地区代码": 530829, "省份": "云南省", "地级市": "普洱市", "区县": "西盟佤族自治县", "年份": 2025, "GDP": 36.84, "一般公共预算收入": 1.02, "一般公共预算支出": 15.52, "政府性基金收入": 0.36, "地方政府债务余额": 29.49, "层级": "county"}, {"序号": 372, "地区名称": "福贡县", "地区代码": 533323, "省份": "云南省", "地级市": "怒江傈僳族自治州", "区县": "福贡县", "年份": 2025, "GDP": 35.25, "一般公共预算收入": 0.73, "一般公共预算支出": 22.09, "政府性基金收入": 0.24, "地方政府债务余额": 32.02, "层级": "county"}, {"序号": 373, "地区名称": "贡山独龙族怒族自治县", "地区代码": 533324, "省份": "云南省", "地级市": "怒江傈僳族自治州", "区县": "贡山独龙族怒族自治县", "年份": 2025, "GDP": 26.29, "一般公共预算收入": 0.68, "一般公共预算支出": 14.62, "政府性基金收入": 0.37, "地方政府债务余额": 13.33, "层级": "county"}, {"序号": 374, "地区名称": "贵阳高新技术产业开发区", "地区代码": null, "省份": "贵州省", "地级市": "贵阳市", "区县": "观山湖区", "年份": 2025, "GDP": null, "一般公共预算收入": 10.57, "一般公共预算支出": 21.17, "政府性基金收入": 1.79, "地方政府债务余额": 186.01, "层级": "county"}, {"序号": 375, "地区名称": "贵阳经济技术开发区", "地区代码": null, "省份": "贵州省", "地级市": "贵阳市", "区县": "", "年份": 2025, "GDP": null, "一般公共预算收入": 14.04, "一般公共预算支出": 19.59, "政府性基金收入": 8.75, "地方政府债务余额": 128.8, "层级": "city"}, {"序号": 376, "地区名称": "广西-东盟经济技术开发区", "地区代码": null, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "兴宁区", "年份": 2025, "GDP": null, "一般公共预算收入": 7.87, "一般公共预算支出": 9.43, "政府性基金收入": 2.45, "地方政府债务余额": 28.99, "层级": "county"}, {"序号": 377, "地区名称": "南宁高新技术产业开发区", "地区代码": null, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "", "年份": 2025, "GDP": null, "一般公共预算收入": 20.41, "一般公共预算支出": 19.97, "政府性基金收入": 1.57, "地方政府债务余额": 60.66, "层级": "city"}, {"序号": 378, "地区名称": "贵州双龙航空港经济区", "地区代码": null, "省份": "贵州省", "地级市": "贵阳市", "区县": "", "年份": 2025, "GDP": null, "一般公共预算收入": 16.02, "一般公共预算支出": 17.73, "政府性基金收入": 42.66, "地方政府债务余额": null, "层级": "city"}, {"序号": 379, "地区名称": "昆明高新技术产业开发区", "地区代码": null, "省份": "云南省", "地级市": "昆明市", "区县": "五华区", "年份": 2025, "GDP": null, "一般公共预算收入": 21.01, "一般公共预算支出": 8.71, "政府性基金收入": 1.07, "地方政府债务余额": 59.05, "层级": "county"}, {"序号": 380, "地区名称": "贵阳综合保税区", "地区代码": null, "省份": "贵州省", "地级市": "贵阳市", "区县": "白云区", "年份": 2025, "GDP": null, "一般公共预算收入": 1.3, "一般公共预算支出": 3.87, "政府性基金收入": 0.0, "地方政府债务余额": 0.57, "层级": "county"}, {"序号": 381, "地区名称": "贵州贵安新区", "地区代码": null, "省份": "贵州省", "地级市": "", "区县": "", "年份": 2025, "GDP": null, "一般公共预算收入": 27.83, "一般公共预算支出": 93.08, "政府性基金收入": 79.62, "地方政府债务余额": null, "层级": "other"}, {"序号": 382, "地区名称": "昆明经济技术开发区", "地区代码": null, "省份": "云南省", "地级市": "昆明市", "区县": "", "年份": 2025, "GDP": null, "一般公共预算收入": 40.3, "一般公共预算支出": 25.18, "政府性基金收入": 10.45, "地方政府债务余额": 49.67, "层级": "city"}, {"序号": 383, "地区名称": "贵州都匀经济开发区", "地区代码": null, "省份": "贵州省", "地级市": "黔南布依族苗族自治州", "区县": "都匀市", "年份": 2025, "GDP": null, "一般公共预算收入": 1.91, "一般公共预算支出": 4.81, "政府性基金收入": 20.38, "地方政府债务余额": 196.47, "层级": "county"}, {"序号": 384, "地区名称": "五象新区", "地区代码": null, "省份": "广西壮族自治区", "地级市": "南宁市", "区县": "良庆区", "年份": 2025, "GDP": null, "一般公共预算收入": 15.95, "一般公共预算支出": 9.12, "政府性基金收入": 0.51, "地方政府债务余额": 25.16, "层级": "county"}, {"序号": 385, "地区名称": "昆明滇池国家旅游度假区", "地区代码": null, "省份": "云南省", "地级市": "昆明市", "区县": "西山区", "年份": 2025, "GDP": null, "一般公共预算收入": 13.15, "一般公共预算支出": 7.81, "政府性基金收入": 4.0, "地方政府债务余额": 85.16, "层级": "county"}, {"序号": 386, "地区名称": "蒙自经济技术开发区", "地区代码": null, "省份": "云南省", "地级市": "红河哈尼族彝族自治州", "区县": "蒙自市", "年份": 2025, "GDP": null, "一般公共预算收入": 3.37, "一般公共预算支出": 3.45, "政府性基金收入": 0.08, "地方政府债务余额": null, "层级": "county"}, {"序号": 387, "地区名称": "北海经济技术开发区", "地区代码": null, "省份": "广西壮族自治区", "地级市": "北海市", "区县": "", "年份": 2025, "GDP": null, "一般公共预算收入": 29.11, "一般公共预算支出": 16.57, "政府性基金收入": null, "地方政府债务余额": null, "层级": "city"}, {"序号": 388, "地区名称": "云南省昆明市滇中新区", "地区代码": null, "省份": "云南省", "地级市": "昆明市", "区县": "官渡区", "年份": 2025, "GDP": null, "一般公共预算收入": 31.36, "一般公共预算支出": 19.02, "政府性基金收入": 90.61, "地方政府债务余额": 180.56, "层级": "county"}, {"序号": 389, "地区名称": "柳州高新技术产业开发区", "地区代码": null, "省份": "广西壮族自治区", "地级市": "柳州市", "区县": "", "年份": 2025, "GDP": null, "一般公共预算收入": 7.49, "一般公共预算支出": 6.71, "政府性基金收入": 0.05, "地方政府债务余额": 19.6, "层级": "city"}, {"序号": 390, "地区名称": "贵州毕节经济开发区", "地区代码": null, "省份": "贵州省", "地级市": "毕节市", "区县": "", "年份": 2025, "GDP": null, "一般公共预算收入": 2.42, "一般公共预算支出": 2.46, "政府性基金收入": 0.63, "地方政府债务余额": null, "层级": "city"}, {"序号": 391, "地区名称": "贵州省安顺经济技术开发区", "地区代码": null, "省份": "贵州省", "地级市": "安顺市", "区县": "", "年份": 2025, "GDP": null, "一般公共预算收入": 11.14, "一般公共预算支出": 22.05, "政府性基金收入": 6.85, "地方政府债务余额": 43.83, "层级": "city"}, {"序号": 392, "地区名称": "新蒲新区", "地区代码": null, "省份": "贵州省", "地级市": "遵义市", "区县": "", "年份": 2025, "GDP": null, "一般公共预算收入": 7.62, "一般公共预算支出": 36.37, "政府性基金收入": 29.65, "地方政府债务余额": 595.75, "层级": "city"}], "province_summaries": {"云南省": {"GDP": 32765.78, "一般公共预算收入": 2243.33, "一般公共预算支出": 7002.2, "政府性基金收入": 893.54, "地方政府债务余额": 18320.68, "财政自给率": 32.0, "负债率": 55.9, "土地财政依赖度": 39.8}, "广西壮族自治区": {"GDP": 29727.45, "一般公共预算收入": 1922.05, "一般公共预算支出": 6742.18, "政府性基金收入": 597.25, "地方政府债务余额": 14752.58, "财政自给率": 28.5, "负债率": 49.6, "土地财政依赖度": 31.1}, "贵州省": {"GDP": 23562.17, "一般公共预算收入": 2223.23, "一般公共预算支出": 6556.39, "政府性基金收入": 2575.69, "地方政府债务余额": 19369.32, "财政自给率": 33.9, "负债率": 82.2, "土地财政依赖度": 115.9}}, "city_analysis": {"云南省": [{"地区名称": "昆明市", "地级市": "昆明市", "GDP": 8637.45, "一般公共预算收入": 575.0, "一般公共预算支出": 843.47, "政府性基金收入": 410.28, "地方政府债务余额": 3132.1}, {"地区名称": "曲靖市", "地级市": "曲靖市", "GDP": 3777.6, "一般公共预算收入": 164.21, "一般公共预算支出": 526.45, "政府性基金收入": 37.78, "地方政府债务余额": 1183.29}, {"地区名称": "红河哈尼族彝族自治州", "地级市": "红河哈尼族彝族自治州", "GDP": 3154.52, "一般公共预算收入": 153.95, "一般公共预算支出": 513.49, "政府性基金收入": 75.95, "地方政府债务余额": 1157.23}, {"地区名称": "玉溪市", "地级市": "玉溪市", "GDP": 2688.3, "一般公共预算收入": 148.21, "一般公共预算支出": 300.55, "政府性基金收入": 27.05, "地方政府债务余额": 1003.15}, {"地区名称": "昭通市", "地级市": "昭通市", "GDP": 2103.4, "一般公共预算收入": 120.19, "一般公共预算支出": 600.0, "政府性基金收入": 40.3, "地方政府债务余额": 1405.11}, {"地区名称": "大理白族自治州", "地级市": "大理白族自治州", "GDP": 2087.51, "一般公共预算收入": 108.02, "一般公共预算支出": 372.3, "政府性基金收入": 15.94, "地方政府债务余额": 945.76}, {"地区名称": "楚雄彝族自治州", "地级市": "楚雄彝族自治州", "GDP": 2040.17, "一般公共预算收入": 107.2, "一般公共预算支出": 320.11, "政府性基金收入": 57.31, "地方政府债务余额": 801.85}, {"地区名称": "文山壮族苗族自治州", "地级市": "文山壮族苗族自治州", "GDP": 1632.64, "一般公共预算收入": 74.12, "一般公共预算支出": 381.87, "政府性基金收入": 30.54, "地方政府债务余额": 1018.95}, {"地区名称": "保山市", "地级市": "保山市", "GDP": 1347.01, "一般公共预算收入": 65.42, "一般公共预算支出": 261.71, "政府性基金收入": 31.64, "地方政府债务余额": 990.77}, {"地区名称": "普洱市", "地级市": "普洱市", "GDP": 1252.4, "一般公共预算收入": 62.57, "一般公共预算支出": 306.28, "政府性基金收入": 19.53, "地方政府债务余额": 707.36}, {"地区名称": "临沧市", "地级市": "临沧市", "GDP": 1127.75, "一般公共预算收入": 51.54, "一般公共预算支出": 266.52, "政府性基金收入": 15.11, "地方政府债务余额": 689.07}, {"地区名称": "西双版纳傣族自治州", "地级市": "西双版纳傣族自治州", "GDP": 940.83, "一般公共预算收入": 39.92, "一般公共预算支出": 145.6, "政府性基金收入": 23.31, "地方政府债务余额": 340.34}, {"地区名称": "丽江市", "地级市": "丽江市", "GDP": 744.27, "一般公共预算收入": 56.78, "一般公共预算支出": 176.32, "政府性基金收入": 17.07, "地方政府债务余额": 478.08}, {"地区名称": "德宏傣族景颇族自治州", "地级市": "德宏傣族景颇族自治州", "GDP": 648.07, "一般公共预算收入": 35.59, "一般公共预算支出": 175.48, "政府性基金收入": 12.45, "地方政府债务余额": 559.14}, {"地区名称": "迪庆藏族自治州", "地级市": "迪庆藏族自治州", "GDP": 316.65, "一般公共预算收入": 18.49, "一般公共预算支出": 142.43, "政府性基金收入": 2.37, "地方政府债务余额": 227.33}, {"地区名称": "怒江傈僳族自治州", "地级市": "怒江傈僳族自治州", "GDP": 288.98, "一般公共预算收入": 14.34, "一般公共预算支出": 127.37, "政府性基金收入": 4.82, "地方政府债务余额": 200.09}, {"地区名称": "昆明经济技术开发区", "地级市": "昆明市", "GDP": null, "一般公共预算收入": 40.3, "一般公共预算支出": 25.18, "政府性基金收入": 10.45, "地方政府债务余额": 49.67}], "广西壮族自治区": [{"地区名称": "南宁市", "地级市": "南宁市", "GDP": 6212.46, "一般公共预算收入": 381.7, "一般公共预算支出": 822.34, "政府性基金收入": 133.57, "地方政府债务余额": 1784.79}, {"地区名称": "柳州市", "地级市": "柳州市", "GDP": 3096.91, "一般公共预算收入": 167.0, "一般公共预算支出": 479.42, "政府性基金收入": 34.67, "地方政府债务余额": 1157.33}, {"地区名称": "桂林市", "地级市": "桂林市", "GDP": 2579.53, "一般公共预算收入": 150.65, "一般公共预算支出": 537.59, "政府性基金收入": 33.27, "地方政府债务余额": 1075.41}, {"地区名称": "玉林市", "地级市": "玉林市", "GDP": 2437.44, "一般公共预算收入": 96.91, "一般公共预算支出": 454.44, "政府性基金收入": 42.8, "地方政府债务余额": 871.28}, {"地区名称": "百色市", "地级市": "百色市", "GDP": 2101.34, "一般公共预算收入": 165.18, "一般公共预算支出": 495.41, "政府性基金收入": 26.39, "地方政府债务余额": 926.68}, {"地区名称": "北海市", "地级市": "北海市", "GDP": 1974.04, "一般公共预算收入": 81.31, "一般公共预算支出": 214.82, "政府性基金收入": 30.45, "地方政府债务余额": 426.44}, {"地区名称": "钦州市", "地级市": "钦州市", "GDP": 1907.61, "一般公共预算收入": 101.64, "一般公共预算支出": 324.82, "政府性基金收入": 65.0, "地方政府债务余额": 800.51}, {"地区名称": "梧州市", "地级市": "梧州市", "GDP": 1719.79, "一般公共预算收入": 85.93, "一般公共预算支出": 289.72, "政府性基金收入": 38.9, "地方政府债务余额": 667.54}, {"地区名称": "贵港市", "地级市": "贵港市", "GDP": 1628.44, "一般公共预算收入": 60.78, "一般公共预算支出": 346.33, "政府性基金收入": 18.22, "地方政府债务余额": 608.25}, {"地区名称": "河池市", "地级市": "河池市", "GDP": 1453.62, "一般公共预算收入": 58.84, "一般公共预算支出": 435.23, "政府性基金收入": 16.0, "地方政府债务余额": 633.06}, {"地区名称": "崇左市", "地级市": "崇左市", "GDP": 1358.64, "一般公共预算收入": 62.4, "一般公共预算支出": 301.56, "政府性基金收入": 25.57, "地方政府债务余额": 646.63}, {"地区名称": "防城港市", "地级市": "防城港市", "GDP": 1201.26, "一般公共预算收入": 55.93, "一般公共预算支出": 163.2, "政府性基金收入": 17.9, "地方政府债务余额": 375.24}, {"地区名称": "来宾市", "地级市": "来宾市", "GDP": 1049.66, "一般公共预算收入": 64.38, "一般公共预算支出": 245.29, "政府性基金收入": 23.62, "地方政府债务余额": 642.54}, {"地区名称": "贺州市", "地级市": "贺州市", "GDP": 1006.74, "一般公共预算收入": 48.7, "一般公共预算支出": 235.52, "政府性基金收入": 22.27, "地方政府债务余额": 501.5}, {"地区名称": "南宁高新技术产业开发区", "地级市": "南宁市", "GDP": null, "一般公共预算收入": 20.41, "一般公共预算支出": 19.97, "政府性基金收入": 1.57, "地方政府债务余额": 60.66}, {"地区名称": "北海经济技术开发区", "地级市": "北海市", "GDP": null, "一般公共预算收入": 29.11, "一般公共预算支出": 16.57, "政府性基金收入": null, "地方政府债务余额": null}, {"地区名称": "柳州高新技术产业开发区", "地级市": "柳州市", "GDP": null, "一般公共预算收入": 7.49, "一般公共预算支出": 6.71, "政府性基金收入": 0.05, "地方政府债务余额": 19.6}], "贵州省": [{"地区名称": "贵阳市", "地级市": "贵阳市", "GDP": 6038.15, "一般公共预算收入": 490.76, "一般公共预算支出": 814.5, "政府性基金收入": 809.02, "地方政府债务余额": 4329.42}, {"地区名称": "遵义市", "地级市": "遵义市", "GDP": 5206.12, "一般公共预算收入": 358.0, "一般公共预算支出": 870.41, "政府性基金收入": 350.65, "地方政府债务余额": 3052.42}, {"地区名称": "毕节市", "地级市": "毕节市", "GDP": 2541.14, "一般公共预算收入": 140.04, "一般公共预算支出": 754.37, "政府性基金收入": 177.28, "地方政府债务余额": 1784.17}, {"地区名称": "黔南布依族苗族自治州", "地级市": "黔南布依族苗族自治州", "GDP": 2008.49, "一般公共预算收入": 133.29, "一般公共预算支出": 503.66, "政府性基金收入": 328.14, "地方政府债务余额": 1705.25}, {"地区名称": "六盘水市", "地级市": "六盘水市", "GDP": 1777.75, "一般公共预算收入": 117.43, "一般公共预算支出": 363.11, "政府性基金收入": 230.7, "地方政府债务余额": 1267.35}, {"地区名称": "铜仁市", "地级市": "铜仁市", "GDP": 1722.66, "一般公共预算收入": 77.03, "一般公共预算支出": 504.86, "政府性基金收入": 215.02, "地方政府债务余额": 1517.61}, {"地区名称": "黔西南布依族苗族自治州", "地级市": "黔西南布依族苗族自治州", "GDP": 1535.28, "一般公共预算收入": 97.22, "一般公共预算支出": 419.56, "政府性基金收入": 205.74, "地方政府债务余额": 1215.5}, {"地区名称": "黔东南苗族侗族自治州", "地级市": "黔东南苗族侗族自治州", "GDP": 1500.24, "一般公共预算收入": 83.67, "一般公共预算支出": 556.54, "政府性基金收入": 125.23, "地方政府债务余额": 1139.12}, {"地区名称": "安顺市", "地级市": "安顺市", "GDP": 1232.35, "一般公共预算收入": 68.31, "一般公共预算支出": 302.85, "政府性基金收入": 104.88, "地方政府债务余额": 844.8}, {"地区名称": "贵阳经济技术开发区", "地级市": "贵阳市", "GDP": null, "一般公共预算收入": 14.04, "一般公共预算支出": 19.59, "政府性基金收入": 8.75, "地方政府债务余额": 128.8}, {"地区名称": "贵州双龙航空港经济区", "地级市": "贵阳市", "GDP": null, "一般公共预算收入": 16.02, "一般公共预算支出": 17.73, "政府性基金收入": 42.66, "地方政府债务余额": null}, {"地区名称": "贵州毕节经济开发区", "地级市": "毕节市", "GDP": null, "一般公共预算收入": 2.42, "一般公共预算支出": 2.46, "政府性基金收入": 0.63, "地方政府债务余额": null}, {"地区名称": "贵州省安顺经济技术开发区", "地级市": "安顺市", "GDP": null, "一般公共预算收入": 11.14, "一般公共预算支出": 22.05, "政府性基金收入": 6.85, "地方政府债务余额": 43.83}, {"地区名称": "新蒲新区", "地级市": "遵义市", "GDP": null, "一般公共预算收入": 7.62, "一般公共预算支出": 36.37, "政府性基金收入": 29.65, "地方政府债务余额": 595.75}]}, "top_counties_gdp": {"贵州省": [{"地区名称": "仁怀市", "地级市": "遵义市", "区县": "仁怀市", "GDP": 2026.43, "一般公共预算收入": 130.53, "一般公共预算支出": 140.92, "政府性基金收入": 37.82, "地方政府债务余额": 144.14}, {"地区名称": "南明区", "地级市": "贵阳市", "区县": "南明区", "GDP": 1207.04, "一般公共预算收入": 26.11, "一般公共预算支出": 49.83, "政府性基金收入": 10.49, "地方政府债务余额": 161.16}, {"地区名称": "云岩区", "地级市": "贵阳市", "区县": "云岩区", "GDP": 1126.69, "一般公共预算收入": 31.6, "一般公共预算支出": 61.58, "政府性基金收入": 24.31, "地方政府债务余额": 86.0}, {"地区名称": "花溪区", "地级市": "贵阳市", "区县": "花溪区", "GDP": 1023.71, "一般公共预算收入": 13.85, "一般公共预算支出": 45.38, "政府性基金收入": 35.75, "地方政府债务余额": 451.99}, {"地区名称": "观山湖区", "地级市": "贵阳市", "区县": "观山湖区", "GDP": 887.64, "一般公共预算收入": 49.37, "一般公共预算支出": 83.04, "政府性基金收入": 10.61, "地方政府债务余额": 392.28}, {"地区名称": "盘州市", "地级市": "六盘水市", "区县": "盘州市", "GDP": 759.57, "一般公共预算收入": 48.78, "一般公共预算支出": 106.46, "政府性基金收入": 68.2, "地方政府债务余额": 315.01}, {"地区名称": "七星关区", "地级市": "毕节市", "区县": "七星关区", "GDP": 619.31, "一般公共预算收入": 25.59, "一般公共预算支出": 111.47, "政府性基金收入": 74.21, "地方政府债务余额": 398.0}, {"地区名称": "兴义市", "地级市": "黔西南布依族苗族自治州", "区县": "兴义市", "GDP": 588.49, "一般公共预算收入": 33.02, "一般公共预算支出": 77.84, "政府性基金收入": 72.09, "地方政府债务余额": 458.28}, {"地区名称": "汇川区", "地级市": "遵义市", "区县": "汇川区", "GDP": 560.02, "一般公共预算收入": 20.29, "一般公共预算支出": 46.14, "政府性基金收入": 24.42, "地方政府债务余额": 261.96}, {"地区名称": "遵义经济技术开发区", "地级市": "遵义市", "区县": "汇川区", "GDP": 560.02, "一般公共预算收入": 20.29, "一般公共预算支出": 46.14, "政府性基金收入": 24.42, "地方政府债务余额": 261.96}], "云南省": [{"地区名称": "官渡区", "地级市": "昆明市", "区县": "官渡区", "GDP": 1628.0, "一般公共预算收入": 38.34, "一般公共预算支出": 59.87, "政府性基金收入": 1.39, "地方政府债务余额": 123.42}, {"地区名称": "五华区", "地级市": "昆明市", "区县": "五华区", "GDP": 1476.37, "一般公共预算收入": 31.16, "一般公共预算支出": 48.32, "政府性基金收入": 1.22, "地方政府债务余额": 55.45}, {"地区名称": "盘龙区", "地级市": "昆明市", "区县": "盘龙区", "GDP": 1301.61, "一般公共预算收入": 31.67, "一般公共预算支出": 49.9, "政府性基金收入": 3.87, "地方政府债务余额": 135.16}, {"地区名称": "麒麟区", "地级市": "曲靖市", "区县": "麒麟区", "GDP": 1192.24, "一般公共预算收入": 18.95, "一般公共预算支出": 38.66, "政府性基金收入": 6.73, "地方政府债务余额": 150.54}, {"地区名称": "西山区", "地级市": "昆明市", "区县": "西山区", "GDP": 1160.24, "一般公共预算收入": 32.07, "一般公共预算支出": 45.32, "政府性基金收入": 0.49, "地方政府债务余额": 70.17}, {"地区名称": "红塔区", "地级市": "玉溪市", "区县": "红塔区", "GDP": 1131.15, "一般公共预算收入": 17.04, "一般公共预算支出": 37.35, "政府性基金收入": 5.94, "地方政府债务余额": 105.82}, {"地区名称": "安宁市", "地级市": "昆明市", "区县": "安宁市", "GDP": 820.54, "一般公共预算收入": 47.59, "一般公共预算支出": 46.62, "政府性基金收入": 3.76, "地方政府债务余额": 200.26}, {"地区名称": "呈贡区", "地级市": "昆明市", "区县": "呈贡区", "GDP": 752.01, "一般公共预算收入": 24.84, "一般公共预算支出": 27.95, "政府性基金收入": 2.64, "地方政府债务余额": 111.17}, {"地区名称": "楚雄市", "地级市": "楚雄彝族自治州", "区县": "楚雄市", "GDP": 725.01, "一般公共预算收入": 35.17, "一般公共预算支出": 55.57, "政府性基金收入": 27.24, "地方政府债务余额": 173.26}, {"地区名称": "大理市", "地级市": "大理白族自治州", "区县": "大理市", "GDP": 632.88, "一般公共预算收入": 33.19, "一般公共预算支出": 55.38, "政府性基金收入": 5.8, "地方政府债务余额": 250.41}], "广西壮族自治区": [{"地区名称": "青秀区", "地级市": "南宁市", "区县": "青秀区", "GDP": 1597.02, "一般公共预算收入": 32.95, "一般公共预算支出": 48.59, "政府性基金收入": 0.51, "地方政府债务余额": 26.26}, {"地区名称": "西乡塘区", "地级市": "南宁市", "区县": "西乡塘区", "GDP": 1091.26, "一般公共预算收入": 12.0, "一般公共预算支出": 41.32, "政府性基金收入": 0.18, "地方政府债务余额": 20.98}, {"地区名称": "港口区", "地级市": "防城港市", "区县": "港口区", "GDP": 803.83, "一般公共预算收入": 9.28, "一般公共预算支出": 17.28, "政府性基金收入": 0.55, "地方政府债务余额": 31.52}, {"地区名称": "江南区", "地级市": "南宁市", "区县": "江南区", "GDP": 705.32, "一般公共预算收入": 8.04, "一般公共预算支出": 38.01, "政府性基金收入": 0.15, "地方政府债务余额": 11.57}, {"地区名称": "海城区", "地级市": "北海市", "区县": "海城区", "GDP": 659.93, "一般公共预算收入": 5.99, "一般公共预算支出": 18.15, "政府性基金收入": 0.11, "地方政府债务余额": 11.45}, {"地区名称": "玉州区", "地级市": "玉林市", "区县": "玉州区", "GDP": 632.92, "一般公共预算收入": 7.77, "一般公共预算支出": 32.65, "政府性基金收入": 0.39, "地方政府债务余额": 47.5}, {"地区名称": "铁山港区", "地级市": "北海市", "区县": "铁山港区", "GDP": 595.16, "一般公共预算收入": 4.33, "一般公共预算支出": 13.87, "政府性基金收入": 0.05, "地方政府债务余额": 7.51}, {"地区名称": "鱼峰区", "地级市": "柳州市", "区县": "鱼峰区", "GDP": 582.04, "一般公共预算收入": 5.75, "一般公共预算支出": 24.93, "政府性基金收入": 0.09, "地方政府债务余额": 6.31}, {"地区名称": "良庆区", "地级市": "南宁市", "区县": "良庆区", "GDP": 543.41, "一般公共预算收入": 17.15, "一般公共预算支出": 29.61, "政府性基金收入": 0.23, "地方政府债务余额": 23.11}, {"地区名称": "柳南区", "地级市": "柳州市", "区县": "柳南区", "GDP": 525.97, "一般公共预算收入": 9.21, "一般公共预算支出": 27.13, "政府性基金收入": 0.03, "地方政府债务余额": 5.46}]}, "top_counties_rev": {"贵州省": [{"地区名称": "仁怀市", "地级市": "遵义市", "区县": "仁怀市", "GDP": 2026.43, "一般公共预算收入": 130.53, "一般公共预算支出": 140.92, "政府性基金收入": 37.82, "地方政府债务余额": 144.14}, {"地区名称": "观山湖区", "地级市": "贵阳市", "区县": "观山湖区", "GDP": 887.64, "一般公共预算收入": 49.37, "一般公共预算支出": 83.04, "政府性基金收入": 10.61, "地方政府债务余额": 392.28}, {"地区名称": "盘州市", "地级市": "六盘水市", "区县": "盘州市", "GDP": 759.57, "一般公共预算收入": 48.78, "一般公共预算支出": 106.46, "政府性基金收入": 68.2, "地方政府债务余额": 315.01}, {"地区名称": "兴义市", "地级市": "黔西南布依族苗族自治州", "区县": "兴义市", "GDP": 588.49, "一般公共预算收入": 33.02, "一般公共预算支出": 77.84, "政府性基金收入": 72.09, "地方政府债务余额": 458.28}, {"地区名称": "云岩区", "地级市": "贵阳市", "区县": "云岩区", "GDP": 1126.69, "一般公共预算收入": 31.6, "一般公共预算支出": 61.58, "政府性基金收入": 24.31, "地方政府债务余额": 86.0}, {"地区名称": "习水县", "地级市": "遵义市", "区县": "习水县", "GDP": 314.64, "一般公共预算收入": 29.84, "一般公共预算支出": 65.21, "政府性基金收入": 16.36, "地方政府债务余额": 174.84}, {"地区名称": "南明区", "地级市": "贵阳市", "区县": "南明区", "GDP": 1207.04, "一般公共预算收入": 26.11, "一般公共预算支出": 49.83, "政府性基金收入": 10.49, "地方政府债务余额": 161.16}, {"地区名称": "七星关区", "地级市": "毕节市", "区县": "七星关区", "GDP": 619.31, "一般公共预算收入": 25.59, "一般公共预算支出": 111.47, "政府性基金收入": 74.21, "地方政府债务余额": 398.0}, {"地区名称": "凯里市", "地级市": "黔东南苗族侗族自治州", "区县": "凯里市", "GDP": 354.23, "一般公共预算收入": 22.5, "一般公共预算支出": 57.66, "政府性基金收入": 31.54, "地方政府债务余额": 248.47}, {"地区名称": "清镇市", "地级市": "贵阳市", "区县": "清镇市", "GDP": 360.52, "一般公共预算收入": 20.63, "一般公共预算支出": 45.65, "政府性基金收入": 39.48, "地方政府债务余额": 217.67}], "云南省": [{"地区名称": "安宁市", "地级市": "昆明市", "区县": "安宁市", "GDP": 820.54, "一般公共预算收入": 47.59, "一般公共预算支出": 46.62, "政府性基金收入": 3.76, "地方政府债务余额": 200.26}, {"地区名称": "官渡区", "地级市": "昆明市", "区县": "官渡区", "GDP": 1628.0, "一般公共预算收入": 38.34, "一般公共预算支出": 59.87, "政府性基金收入": 1.39, "地方政府债务余额": 123.42}, {"地区名称": "楚雄市", "地级市": "楚雄彝族自治州", "区县": "楚雄市", "GDP": 725.01, "一般公共预算收入": 35.17, "一般公共预算支出": 55.57, "政府性基金收入": 27.24, "地方政府债务余额": 173.26}, {"地区名称": "大理市", "地级市": "大理白族自治州", "区县": "大理市", "GDP": 632.88, "一般公共预算收入": 33.19, "一般公共预算支出": 55.38, "政府性基金收入": 5.8, "地方政府债务余额": 250.41}, {"地区名称": "西山区", "地级市": "昆明市", "区县": "西山区", "GDP": 1160.24, "一般公共预算收入": 32.07, "一般公共预算支出": 45.32, "政府性基金收入": 0.49, "地方政府债务余额": 70.17}, {"地区名称": "盘龙区", "地级市": "昆明市", "区县": "盘龙区", "GDP": 1301.61, "一般公共预算收入": 31.67, "一般公共预算支出": 49.9, "政府性基金收入": 3.87, "地方政府债务余额": 135.16}, {"地区名称": "云南省昆明市滇中新区", "地级市": "昆明市", "区县": "官渡区", "GDP": null, "一般公共预算收入": 31.36, "一般公共预算支出": 19.02, "政府性基金收入": 90.61, "地方政府债务余额": 180.56}, {"地区名称": "五华区", "地级市": "昆明市", "区县": "五华区", "GDP": 1476.37, "一般公共预算收入": 31.16, "一般公共预算支出": 48.32, "政府性基金收入": 1.22, "地方政府债务余额": 55.45}, {"地区名称": "呈贡区", "地级市": "昆明市", "区县": "呈贡区", "GDP": 752.01, "一般公共预算收入": 24.84, "一般公共预算支出": 27.95, "政府性基金收入": 2.64, "地方政府债务余额": 111.17}, {"地区名称": "文山市", "地级市": "文山壮族苗族自治州", "区县": "文山市", "GDP": 428.62, "一般公共预算收入": 24.02, "一般公共预算支出": 54.35, "政府性基金收入": 10.34, "地方政府债务余额": 193.99}], "广西壮族自治区": [{"地区名称": "青秀区", "地级市": "南宁市", "区县": "青秀区", "GDP": 1597.02, "一般公共预算收入": 32.95, "一般公共预算支出": 48.59, "政府性基金收入": 0.51, "地方政府债务余额": 26.26}, {"地区名称": "平果市", "地级市": "百色市", "区县": "平果市", "GDP": 344.14, "一般公共预算收入": 23.49, "一般公共预算支出": 45.62, "政府性基金收入": 5.54, "地方政府债务余额": 112.04}, {"地区名称": "北流市", "地级市": "玉林市", "区县": "北流市", "GDP": 521.94, "一般公共预算收入": 20.25, "一般公共预算支出": 71.06, "政府性基金收入": 7.42, "地方政府债务余额": 127.75}, {"地区名称": "良庆区", "地级市": "南宁市", "区县": "良庆区", "GDP": 543.41, "一般公共预算收入": 17.15, "一般公共预算支出": 29.61, "政府性基金收入": 0.23, "地方政府债务余额": 23.11}, {"地区名称": "靖西市", "地级市": "百色市", "区县": "靖西市", "GDP": 215.6, "一般公共预算收入": 16.04, "一般公共预算支出": 55.76, "政府性基金收入": 1.64, "地方政府债务余额": 86.38}, {"地区名称": "五象新区", "地级市": "南宁市", "区县": "良庆区", "GDP": null, "一般公共预算收入": 15.95, "一般公共预算支出": 9.12, "政府性基金收入": 0.51, "地方政府债务余额": 25.16}, {"地区名称": "合浦县", "地级市": "北海市", "区县": "合浦县", "GDP": 458.86, "一般公共预算收入": 14.91, "一般公共预算支出": 66.34, "政府性基金收入": 4.96, "地方政府债务余额": 111.28}, {"地区名称": "横州市", "地级市": "南宁市", "区县": "横州市", "GDP": 423.46, "一般公共预算收入": 13.09, "一般公共预算支出": 64.25, "政府性基金收入": 3.65, "地方政府债务余额": 51.33}, {"地区名称": "田东县", "地级市": "百色市", "区县": "田东县", "GDP": 209.02, "一般公共预算收入": 12.79, "一般公共预算支出": 38.06, "政府性基金收入": 2.34, "地方政府债务余额": 58.15}, {"地区名称": "扶绥县", "地级市": "崇左市", "区县": "扶绥县", "GDP": 431.19, "一般公共预算收入": 12.46, "一般公共预算支出": 41.66, "政府性基金收入": 7.35, "地方政府债务余额": 86.98}]}, "city_county_map": {"贵州省": {"遵义市": ["仁怀市", "汇川区", "遵义经济技术开发区", "播州区", "红花岗区", "习水县", "桐梓县", "湄潭县", "正安县", "绥阳县", "赤水市", "凤冈县", "余庆县", "道真仡佬族苗族自治县", "务川仡佬族苗族自治县"], "贵阳市": ["南明区", "云岩区", "花溪区", "观山湖区", "开阳县", "清镇市", "白云区", "乌当区", "息烽县", "修文县", "贵阳高新技术产业开发区", "贵阳综合保税区"], "六盘水市": ["盘州市", "钟山区", "水城区", "六枝特区"], "毕节市": ["七星关区", "威宁彝族回族苗族自治县", "大方县", "金沙县", "织金县", "黔西市", "纳雍县", "赫章县"], "黔西南布依族苗族自治州": ["兴义市", "兴仁市", "贞丰县", "安龙县", "望谟县", "普安县", "晴隆县", "册亨县"], "安顺市": ["西秀区", "平坝区", "普定县", "镇宁布依族苗族自治县", "关岭布依族苗族自治县", "紫云苗族布依族自治县"], "黔东南苗族侗族自治州": ["凯里市", "黎平县", "榕江县", "天柱县", "从江县", "黄平县", "镇远县", "岑巩县", "剑河县", "锦屏县", "三穗县", "台江县", "麻江县", "丹寨县", "雷山县", "施秉县"], "黔南布依族苗族自治州": ["福泉市", "都匀市", "瓮安县", "龙里县", "惠水县", "独山县", "贵定县", "平塘县", "三都水族自治县", "罗甸县", "长顺县", "荔波县", "贵州都匀经济开发区"], "铜仁市": ["碧江区", "松桃苗族自治县", "思南县", "德江县", "沿河土家族自治县", "石阡县", "印江土家族苗族自治县", "玉屏侗族自治县", "万山区", "江口县"]}, "云南省": {"昆明市": ["官渡区", "五华区", "盘龙区", "西山区", "安宁市", "呈贡区", "晋宁区", "嵩明县", "宜良县", "寻甸回族彝族自治县", "禄劝彝族苗族自治县", "石林彝族自治县", "东川区", "富民县", "昆明高新技术产业开发区", "昆明滇池国家旅游度假区", "云南省昆明市滇中新区"], "曲靖市": ["麒麟区", "宣威市", "沾益区", "会泽县", "陆良县", "罗平县", "富源县", "师宗县", "马龙区"], "玉溪市": ["红塔区", "新平彝族傣族自治县", "江川区", "通海县", "峨山彝族自治县", "澄江市", "易门县", "元江哈尼族彝族傣族自治县", "华宁县"], "楚雄彝族自治州": ["楚雄市", "楚雄高新技术产业开发区", "禄丰市", "大姚县", "武定县", "元谋县", "南华县", "姚安县", "牟定县", "双柏县", "永仁县"], "大理白族自治州": ["大理市", "祥云县", "鹤庆县", "宾川县", "弥渡县", "巍山彝族回族自治县", "南涧彝族自治县", "洱源县", "永平县", "云龙县", "剑川县", "漾濞彝族自治县"], "红河哈尼族彝族自治州": ["弥勒市", "蒙自市", "个旧市", "开远市", "建水县", "泸西县", "石屏县", "河口瑶族自治县", "元阳县", "金平苗族瑶族傣族自治县", "红河县", "屏边苗族自治县", "绿春县", "蒙自经济技术开发区"], "昭通市": ["昭阳区", "镇雄县", "永善县", "巧家县", "彝良县", "鲁甸县", "水富市", "威信县", "盐津县", "大关县", "绥江县"], "保山市": ["隆阳区", "腾冲市", "昌宁县", "龙陵县", "施甸县"], "西双版纳傣族自治州": ["景洪市", "勐海县", "勐腊县"], "文山壮族苗族自治州": ["文山市", "砚山县", "广南县", "富宁县", "马关县", "丘北县", "麻栗坡县", "西畴县"], "普洱市": ["思茅区", "澜沧拉祜族自治县", "景谷傣族彝族自治县", "景东彝族自治县", "墨江哈尼族自治县", "镇沅彝族哈尼族拉祜族自治县", "宁洱哈尼族彝族自治县", "江城哈尼族彝族自治县", "孟连傣族拉祜族佤族自治县", "西盟佤族自治县"], "丽江市": ["古城区", "永胜县", "玉龙纳西族自治县", "华坪县", "宁蒗彝族自治县"], "临沧市": ["临翔区", "凤庆县", "云县", "耿马傣族佤族自治县", "永德县", "双江拉祜族佤族布朗族傣族自治县", "镇康县", "沧源佤族自治县"], "德宏傣族景颇族自治州": ["芒市", "瑞丽市", "盈江县", "陇川县", "梁河县"], "迪庆藏族自治州": ["香格里拉市", "维西傈僳族自治县", "德钦县"], "怒江傈僳族自治州": ["泸水市", "兰坪白族普米族自治县", "福贡县", "贡山独龙族怒族自治县"]}, "广西壮族自治区": {"南宁市": ["青秀区", "西乡塘区", "江南区", "良庆区", "武鸣区", "兴宁区", "横州市", "宾阳县", "邕宁区", "隆安县", "上林县", "马山县", "广西-东盟经济技术开发区", "五象新区"], "防城港市": ["港口区", "防城区", "上思县", "东兴市"], "北海市": ["海城区", "铁山港区", "合浦县", "银海区"], "玉林市": ["玉州区", "北流市", "博白县", "陆川县", "容县", "兴业县", "福绵区"], "柳州市": ["鱼峰区", "柳南区", "柳北区", "城中区", "柳江区", "柳城县", "鹿寨县", "融水苗族自治县", "融安县", "三江侗族自治县"], "来宾市": ["兴宾区", "武宣县", "象州县", "忻城县", "金秀瑶族自治县", "合山市"], "贵港市": ["桂平市", "港北区", "平南县", "覃塘区", "港南区"], "钦州市": ["中国-马来西亚钦州产业园区", "灵山县", "钦南区", "钦北区", "浦北县"], "梧州市": ["藤县", "岑溪市", "万秀区", "长洲区", "龙圩区", "苍梧县", "蒙山县"], "崇左市": ["扶绥县", "江州区", "宁明县", "大新县", "凭祥市", "龙州县", "天等县"], "百色市": ["右江区", "平果市", "田阳区", "靖西市", "田东县", "德保县", "田林县", "隆林各族自治县", "凌云县", "西林县", "那坡县", "乐业县"], "贺州市": ["八步区", "平桂区", "钟山县", "富川瑶族自治县", "昭平县"], "桂林市": ["临桂区", "七星区", "象山区", "全州县", "灵川县", "兴安县", "平乐县", "荔浦市", "永福县", "阳朔县", "秀峰区", "恭城瑶族自治县", "叠彩区", "灌阳县", "龙胜各族自治县", "资源县", "雁山区"], "河池市": ["金城江区", "宜州区", "南丹县", "环江毛南族自治县", "都安瑶族自治县", "罗城仫佬族自治县", "大化瑶族自治县", "天峨县", "巴马瑶族自治县", "东兰县", "凤山县"]}}};
+
+// ============ Chart.js Charts ============
+Chart.defaults.font.family = "'-apple-system', 'PingFang SC', 'Microsoft YaHei', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#666';
+
+// Chart 1: GDP & Revenue
+new Chart(document.getElementById('chartGdpRev'), {
+  type: 'bar',
+  data: {
+    labels: ['云南省', '广西壮族自治区', '贵州省'],
+    datasets: [
+      { label: 'GDP', data: [32765.78, 29727.45, 23562.17], backgroundColor: '#3498db', borderRadius: 4 },
+      { label: '一般公共预算收入', data: [2243.33, 1922.05, 2223.23], backgroundColor: '#e74c3c', borderRadius: 4 },
+      { label: '政府性基金收入', data: [893.54, 597.25, 2575.69], backgroundColor: '#f39c12', borderRadius: 4 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+});
+
+// Chart 2: Ratios
+new Chart(document.getElementById('chartRatios'), {
+  type: 'bar',
+  data: {
+    labels: ['云南省', '广西壮族自治区', '贵州省'],
+    datasets: [
+      { label: '财政自给率(%)', data: [32.0, 28.5, 33.9], backgroundColor: '#3498db', borderRadius: 4 },
+      { label: '负债率(%)', data: [55.9, 49.6, 82.2], backgroundColor: '#e74c3c', borderRadius: 4 },
+      { label: '土地财政依赖度(%)', data: [39.8, 31.1, 115.9], backgroundColor: '#f39c12', borderRadius: 4 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+});
+
+// Chart 3: Debt
+new Chart(document.getElementById('chartDebt'), {
+  type: 'bar',
+  data: {
+    labels: ['云南省', '广西壮族自治区', '贵州省'],
+    datasets: [
+      { label: '地方政府债务余额', data: [18320.68, 14752.58, 19369.32], backgroundColor: ['#e74c3c', '#27ae60', '#f39c12'], borderRadius: 4 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+
+// Chart 4: Revenue vs Expenditure
+new Chart(document.getElementById('chartRevExp'), {
+  type: 'bar',
+  data: {
+    labels: ['云南省', '广西壮族自治区', '贵州省'],
+    datasets: [
+      { label: '一般公共预算收入', data: [2243.33, 1922.05, 2223.23], backgroundColor: '#27ae60', borderRadius: 4 },
+      { label: '一般公共预算支出', data: [7002.2, 6742.18, 6556.39], backgroundColor: '#e74c3c', borderRadius: 4 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+});
+
+// ============ Interactive Table ============
+let currentProv = 'all';
+let currentCity = 'all';
+let currentLevel = 'all';
+let searchKeyword = '';
+let sortCol = '序号';
+let sortDir = 'asc';
+let pageSize = 50;
+let currentPage = 1;
+
+function fmtNum(v) {
+  if (v === null || v === undefined || v === '') return '<span class="null-val">—</span>';
+  return parseFloat(v).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function calcDebtRatio(r) {
+  if (r['GDP'] && r['地方政府债务余额']) {
+    return r['地方政府债务余额'] / r['GDP'] * 100;
+  }
+  return null;
+}
+
+function fmtRatio(v) {
+  if (v === null || v === undefined) return '<span class="null-val">—</span>';
+  return v.toFixed(1) + '%';
+}
+
+function sortBy(col, dir) {
+  sortCol = col;
+  sortDir = dir;
+  currentPage = 1;
+  renderTable();
+}
+
+function getFilteredData() {
+  let filtered = allData.all_records.filter(r => {
+    if (currentProv !== 'all' && r['省份'] !== currentProv) return false;
+    if (currentCity !== 'all' && r['地级市'] !== currentCity) return false;
+    if (currentLevel !== 'all' && r['层级'] !== currentLevel) return false;
+    if (searchKeyword && !r['地区名称'].includes(searchKeyword) && !r['地级市'].includes(searchKeyword) && !r['区县'].includes(searchKeyword)) return false;
+    return true;
+  });
+
+  // Sort
+  filtered.sort((a, b) => {
+    let va, vb;
+    if (sortCol === '负债率') {
+      va = calcDebtRatio(a);
+      vb = calcDebtRatio(b);
+    } else {
+      va = a[sortCol];
+      vb = b[sortCol];
+    }
+    if (va === null || va === undefined || va === '') va = sortDir === 'asc' ? Infinity : -Infinity;
+    if (vb === null || vb === undefined || vb === '') vb = sortDir === 'asc' ? Infinity : -Infinity;
+    if (typeof va === 'string') {
+      return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    }
+    return sortDir === 'asc' ? va - vb : vb - va;
+  });
+
+  return filtered;
+}
+
+function renderTable() {
+  const data = getFilteredData();
+  const tbody = document.getElementById('tableBody');
+  
+  let displayData = data;
+  if (pageSize !== 'all') {
+    const start = (currentPage - 1) * pageSize;
+    displayData = data.slice(start, start + parseInt(pageSize));
+  }
+
+  tbody.innerHTML = displayData.map(r => {
+    const levelClass = r['层级'] === 'province' ? 'level-province' : r['层级'] === 'city' ? 'level-city' : r['层级'] === 'county' ? 'level-county' : 'level-other';
+    const levelText = r['层级'] === 'province' ? '省级' : r['层级'] === 'city' ? '市级' : r['层级'] === 'county' ? '区县级' : '其他';
+    const debtRatio = calcDebtRatio(r);
+    return '<tr>' +
+      '<td>' + r['序号'] + '</td>' +
+      '<td>' + r['地区名称'] + '</td>' +
+      '<td>' + (r['省份'] || '—') + '</td>' +
+      '<td>' + (r['地级市'] || '—') + '</td>' +
+      '<td>' + (r['区县'] || '—') + '</td>' +
+      '<td><span class="' + levelClass + '">' + levelText + '</span></td>' +
+      '<td>' + fmtNum(r['GDP']) + '</td>' +
+      '<td>' + fmtNum(r['一般公共预算收入']) + '</td>' +
+      '<td>' + fmtNum(r['一般公共预算支出']) + '</td>' +
+      '<td>' + fmtNum(r['政府性基金收入']) + '</td>' +
+      '<td>' + fmtNum(r['地方政府债务余额']) + '</td>' +
+      '<td>' + fmtRatio(debtRatio) + '</td>' +
+      '</tr>';
+  }).join('');
+
+  // Footer
+  const footer = document.getElementById('tableFooter');
+  if (pageSize === 'all') {
+    footer.textContent = '共 ' + data.length + ' 条记录';
+  } else {
+    const totalPages = Math.ceil(data.length / pageSize);
+    footer.innerHTML = '共 ' + data.length + ' 条记录 | 第 ' + currentPage + '/' + totalPages + ' 页 ' +
+      (currentPage > 1 ? '<a href="javascript:void(0)" onclick="changePage(-1)" style="color:#667eea;margin-left:12px;">上一页</a>' : '') +
+      (currentPage < totalPages ? '<a href="javascript:void(0)" onclick="changePage(1)" style="color:#667eea;margin-left:8px;">下一页</a>' : '');
+  }
+
+  // Update sort icons
+  document.querySelectorAll('.data-table th').forEach(th => {
+    th.classList.remove('sorted');
+    const icon = th.querySelector('.sort-icon');
+    if (th.dataset.col === sortCol) {
+      th.classList.add('sorted');
+      if (icon) icon.textContent = sortDir === 'asc' ? '▲' : '▼';
+    } else {
+      if (icon) icon.textContent = '';
+    }
+  });
+
+  // Update sort button active states
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  if (sortCol === '负债率' || sortCol === 'GDP' || sortCol === '一般公共预算收入' || sortCol === '一般公共预算支出' || sortCol === '地方政府债务余额') {
+    const activeBtn = document.querySelector('.sort-btn[onclick*="' + sortCol + '"][onclick*="' + sortDir + '"]');
+    if (activeBtn) activeBtn.classList.add('active');
+  }
+}
+
+function changePage(dir) {
+  currentPage += dir;
+  renderTable();
+}
+
+function updateCityOptions() {
+  const citySelect = document.getElementById('cityFilter');
+  citySelect.innerHTML = '<option value="all">全部地级市</option>';
+  
+  const cityMap = allData.city_county_map;
+  const provs = currentProv === 'all' ? Object.keys(cityMap) : [currentProv];
+  
+  provs.forEach(prov => {
+    if (cityMap[prov]) {
+      const cities = Object.keys(cityMap[prov]).sort();
+      cities.forEach(city => {
+        const countyCount = cityMap[prov][city].length;
+        const opt = document.createElement('option');
+        opt.value = city;
+        opt.textContent = city + (countyCount > 0 ? ' (' + countyCount + '个区县)' : '');
+        citySelect.appendChild(opt);
+      });
+    }
+  });
+}
+
+// Province tabs
+document.querySelectorAll('.prov-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.prov-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentProv = tab.dataset.prov;
+    currentCity = 'all';
+    currentPage = 1;
+    updateCityOptions();
+    renderTable();
+  });
+});
+
+// City filter
+document.getElementById('cityFilter').addEventListener('change', e => {
+  currentCity = e.target.value;
+  currentPage = 1;
+  renderTable();
+});
+
+// Level filter
+document.getElementById('levelFilter').addEventListener('change', e => {
+  currentLevel = e.target.value;
+  currentPage = 1;
+  renderTable();
+});
+
+// Search
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchKeyword = e.target.value.trim();
+  currentPage = 1;
+  renderTable();
+});
+
+// Page size
+document.getElementById('pageSize').addEventListener('change', e => {
+  pageSize = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
+  currentPage = 1;
+  renderTable();
+});
+
+// Sort
+document.querySelectorAll('.data-table th').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.col;
+    if (sortCol === col) {
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortCol = col;
+      sortDir = 'desc';
+    }
+    renderTable();
+  });
+});
+
+// Initial render
+updateCityOptions();
+renderTable();
+</script>
+
+</body>
+</html>
