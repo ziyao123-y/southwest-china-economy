@@ -290,12 +290,26 @@ body {
 }
 @media (max-width: 600px) {
   .container { padding: 10px; }
-  .header { padding: 24px 16px; }
+  .header { padding: 24px 16px; border-radius: 12px; }
   .header h1 { font-size: 18px; }
-  .section-title { font-size: 16px; }
+  .section-title { font-size: 16px; margin: 24px 0 12px; }
   .data-table { font-size: 12px; }
   .data-table th, .data-table td { padding: 6px 8px; }
   .data-table-wrap { max-height: 350px; }
+  .prov-tab { padding: 6px 14px; font-size: 12px; }
+  .filter-group select, .filter-group input { font-size: 14px; padding: 10px 12px; }
+  .filter-group label { font-size: 12px; }
+  .prov-card { padding: 16px; }
+  .metric-item .value { font-size: 16px; }
+  .ranking-table { font-size: 12px; }
+  .ranking-table th, .ranking-table td { padding: 6px 8px; }
+  .analysis-section { padding: 16px; }
+  .analysis-section p, .analysis-section li { font-size: 13px; }
+  .econ-card { padding: 12px; }
+  .econ-card-name { font-size: 15px; }
+  .econ-card-metrics { gap: 6px; }
+  .econ-card-metric { padding: 6px 8px; }
+  .econ-card-metric .mv { font-size: 14px; }
 }
 /* Scrollbar styling */
 .data-table-wrap::-webkit-scrollbar {
@@ -327,6 +341,129 @@ body::-webkit-scrollbar-thumb {
 body::-webkit-scrollbar-thumb:hover {
   background: #999;
 }
+
+/* View Toggle */
+.view-toggle {
+  display: inline-flex;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-left: auto;
+}
+.view-toggle button {
+  padding: 6px 16px;
+  border: none;
+  background: #fff;
+  color: #666;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.view-toggle button.active {
+  background: #667eea;
+  color: #fff;
+}
+.view-toggle button:hover:not(.active) {
+  color: #667eea;
+}
+
+/* Card View */
+.card-list {
+  display: none;
+  gap: 12px;
+  flex-direction: column;
+}
+.card-list.active {
+  display: flex;
+}
+.data-table-wrap.card-mode {
+  display: none;
+}
+.data-table-wrap.card-mode + .card-list {
+  display: flex;
+}
+.econ-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  border-left: 4px solid #667eea;
+}
+.econ-card.level-province { border-left-color: #e74c3c; }
+.econ-card.level-city { border-left-color: #3498db; }
+.econ-card.level-county { border-left-color: #27ae60; }
+.econ-card.level-other { border-left-color: #9b59b6; }
+.econ-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.econ-card-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+.econ-card-badge {
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.econ-card-badge.province { background: #fde8e8; color: #e74c3c; }
+.econ-card-badge.city { background: #e8f0fd; color: #3498db; }
+.econ-card-badge.county { background: #e8f8e8; color: #27ae60; }
+.econ-card-badge.other { background: #f3e8f8; color: #9b59b6; }
+.econ-card-loc {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 10px;
+}
+.econ-card-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.econ-card-metric {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.econ-card-metric .ml { font-size: 11px; color: #888; }
+.econ-card-metric .mv { font-size: 15px; font-weight: 700; }
+.econ-card-metric .mv .mu { font-size: 11px; font-weight: 400; color: #aaa; }
+.econ-card-metric.danger .mv { color: #e74c3c; }
+
+/* Ranking table scroll wrapper */
+.rank-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+.rank-table-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.rank-table-scroll::-webkit-scrollbar-track {
+  background: #f0f2f5;
+  border-radius: 3px;
+}
+.rank-table-scroll::-webkit-scrollbar-thumb {
+  background: #aaa;
+  border-radius: 3px;
+}
+.rank-table-scroll .ranking-table th:first-child,
+.rank-table-scroll .ranking-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 1;
+}
+.rank-table-scroll .ranking-table th:first-child {
+  background: #f8f9fa;
+}
+
 </style>
 </head>
 <body>
@@ -518,8 +655,12 @@ body::-webkit-scrollbar-thumb:hover {
       <option value="all">全部</option>
     </select>
   </div>
+  <div class="view-toggle">
+    <button id="viewTable" class="active" onclick="switchView('table')">📋 表格</button>
+    <button id="viewCard" onclick="switchView('card')">🗂 卡片</button>
+  </div>
 </div>
-<div class="data-table-wrap">
+<div class="data-table-wrap" id="tableWrap">
   <table class="data-table" id="dataTable">
     <thead>
       <tr>
@@ -540,6 +681,7 @@ body::-webkit-scrollbar-thumb:hover {
     <tbody id="tableBody"></tbody>
   </table>
 </div>
+<div class="card-list" id="cardList"></div>
 <div class="table-footer" id="tableFooter"></div>
 
 <!-- Yunnan Analysis -->
@@ -551,14 +693,14 @@ body::-webkit-scrollbar-thumb:hover {
   <p>云南省2025年GDP达 <span class="highlight-blue">32,765.78亿元</span>，在三省中排名第一，一般公共预算收入 <span class="highlight-blue">2,243.33亿元</span>，同样位列三省之首。但一般公共预算支出高达 7,002.20亿元，财政自给率仅为 <span class="highlight">32.0%</span>，意味着近七成支出依赖中央转移支付。地方政府债务余额 18,320.68亿元，负债率 <span class="highlight">55.9%</span>，债务压力较大但尚在可控范围。</p>
 
   <h4>二、地级市经济排名（GDP Top 10）</h4>
-  <table class="ranking-table">
+  <div class="rank-table-scroll"><table class="ranking-table">
     <thead><tr><th>排名</th><th>城市</th><th>GDP(亿元)</th><th>预算收入(亿元)</th><th>预算支出(亿元)</th><th>债务余额(亿元)</th><th>负债率(%)</th></tr></thead>
-    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>昆明市</td><td>8637.45</td><td>575.0</td><td>843.47</td><td>3132.1</td><td>36.3</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>曲靖市</td><td>3777.6</td><td>164.21</td><td>526.45</td><td>1183.29</td><td>31.3</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>红河哈尼族彝族自治州</td><td>3154.52</td><td>153.95</td><td>513.49</td><td>1157.23</td><td>36.7</td></tr><tr><td><span class="rank-num ">4</span></td><td>玉溪市</td><td>2688.3</td><td>148.21</td><td>300.55</td><td>1003.15</td><td>37.3</td></tr><tr><td><span class="rank-num ">5</span></td><td>昭通市</td><td>2103.4</td><td>120.19</td><td>600.0</td><td>1405.11</td><td>66.8</td></tr><tr><td><span class="rank-num ">6</span></td><td>大理白族自治州</td><td>2087.51</td><td>108.02</td><td>372.3</td><td>945.76</td><td>45.3</td></tr><tr><td><span class="rank-num ">7</span></td><td>楚雄彝族自治州</td><td>2040.17</td><td>107.2</td><td>320.11</td><td>801.85</td><td>39.3</td></tr><tr><td><span class="rank-num ">8</span></td><td>文山壮族苗族自治州</td><td>1632.64</td><td>74.12</td><td>381.87</td><td>1018.95</td><td>62.4</td></tr><tr><td><span class="rank-num ">9</span></td><td>保山市</td><td>1347.01</td><td>65.42</td><td>261.71</td><td>990.77</td><td>73.6</td></tr><tr><td><span class="rank-num ">10</span></td><td>普洱市</td><td>1252.4</td><td>62.57</td><td>306.28</td><td>707.36</td><td>56.5</td></tr></tbody></table>
+    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>昆明市</td><td>8637.45</td><td>575.0</td><td>843.47</td><td>3132.1</td><td>36.3</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>曲靖市</td><td>3777.6</td><td>164.21</td><td>526.45</td><td>1183.29</td><td>31.3</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>红河哈尼族彝族自治州</td><td>3154.52</td><td>153.95</td><td>513.49</td><td>1157.23</td><td>36.7</td></tr><tr><td><span class="rank-num ">4</span></td><td>玉溪市</td><td>2688.3</td><td>148.21</td><td>300.55</td><td>1003.15</td><td>37.3</td></tr><tr><td><span class="rank-num ">5</span></td><td>昭通市</td><td>2103.4</td><td>120.19</td><td>600.0</td><td>1405.11</td><td>66.8</td></tr><tr><td><span class="rank-num ">6</span></td><td>大理白族自治州</td><td>2087.51</td><td>108.02</td><td>372.3</td><td>945.76</td><td>45.3</td></tr><tr><td><span class="rank-num ">7</span></td><td>楚雄彝族自治州</td><td>2040.17</td><td>107.2</td><td>320.11</td><td>801.85</td><td>39.3</td></tr><tr><td><span class="rank-num ">8</span></td><td>文山壮族苗族自治州</td><td>1632.64</td><td>74.12</td><td>381.87</td><td>1018.95</td><td>62.4</td></tr><tr><td><span class="rank-num ">9</span></td><td>保山市</td><td>1347.01</td><td>65.42</td><td>261.71</td><td>990.77</td><td>73.6</td></tr><tr><td><span class="rank-num ">10</span></td><td>普洱市</td><td>1252.4</td><td>62.57</td><td>306.28</td><td>707.36</td><td>56.5</td></tr></tbody></table></div>
 
   <h4>三、区县经济亮点（GDP Top 10）</h4>
-  <table class="ranking-table">
+  <div class="rank-table-scroll"><table class="ranking-table">
     <thead><tr><th>排名</th><th>区县</th><th>所属地级市</th><th>GDP(亿元)</th><th>预算收入(亿元)</th><th>债务余额(亿元)</th></tr></thead>
-    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>官渡区</td><td>昆明市</td><td>1628.0</td><td>38.34</td><td>123.42</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>五华区</td><td>昆明市</td><td>1476.37</td><td>31.16</td><td>55.45</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>盘龙区</td><td>昆明市</td><td>1301.61</td><td>31.67</td><td>135.16</td></tr><tr><td><span class="rank-num ">4</span></td><td>麒麟区</td><td>曲靖市</td><td>1192.24</td><td>18.95</td><td>150.54</td></tr><tr><td><span class="rank-num ">5</span></td><td>西山区</td><td>昆明市</td><td>1160.24</td><td>32.07</td><td>70.17</td></tr><tr><td><span class="rank-num ">6</span></td><td>红塔区</td><td>玉溪市</td><td>1131.15</td><td>17.04</td><td>105.82</td></tr><tr><td><span class="rank-num ">7</span></td><td>安宁市</td><td>昆明市</td><td>820.54</td><td>47.59</td><td>200.26</td></tr><tr><td><span class="rank-num ">8</span></td><td>呈贡区</td><td>昆明市</td><td>752.01</td><td>24.84</td><td>111.17</td></tr><tr><td><span class="rank-num ">9</span></td><td>楚雄市</td><td>楚雄彝族自治州</td><td>725.01</td><td>35.17</td><td>173.26</td></tr><tr><td><span class="rank-num ">10</span></td><td>大理市</td><td>大理白族自治州</td><td>632.88</td><td>33.19</td><td>250.41</td></tr></tbody></table>
+    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>官渡区</td><td>昆明市</td><td>1628.0</td><td>38.34</td><td>123.42</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>五华区</td><td>昆明市</td><td>1476.37</td><td>31.16</td><td>55.45</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>盘龙区</td><td>昆明市</td><td>1301.61</td><td>31.67</td><td>135.16</td></tr><tr><td><span class="rank-num ">4</span></td><td>麒麟区</td><td>曲靖市</td><td>1192.24</td><td>18.95</td><td>150.54</td></tr><tr><td><span class="rank-num ">5</span></td><td>西山区</td><td>昆明市</td><td>1160.24</td><td>32.07</td><td>70.17</td></tr><tr><td><span class="rank-num ">6</span></td><td>红塔区</td><td>玉溪市</td><td>1131.15</td><td>17.04</td><td>105.82</td></tr><tr><td><span class="rank-num ">7</span></td><td>安宁市</td><td>昆明市</td><td>820.54</td><td>47.59</td><td>200.26</td></tr><tr><td><span class="rank-num ">8</span></td><td>呈贡区</td><td>昆明市</td><td>752.01</td><td>24.84</td><td>111.17</td></tr><tr><td><span class="rank-num ">9</span></td><td>楚雄市</td><td>楚雄彝族自治州</td><td>725.01</td><td>35.17</td><td>173.26</td></tr><tr><td><span class="rank-num ">10</span></td><td>大理市</td><td>大理白族自治州</td><td>632.88</td><td>33.19</td><td>250.41</td></tr></tbody></table></div>
 
   <h4>四、核心发现</h4>
   <ul>
@@ -579,14 +721,14 @@ body::-webkit-scrollbar-thumb:hover {
   <p>广西2025年GDP达 <span class="highlight-blue">29,727.45亿元</span>，三省排名第二，一般公共预算收入 1,922.05亿元。值得关注的是，广西的负债率仅为 <span class="highlight-green">49.6%</span>，是三省中最低的；土地财政依赖度 31.1%%也为最低，财政结构相对稳健。但财政自给率 <span class="highlight">28.5%</span>为三省最低，支出高度依赖转移支付。</p>
 
   <h4>二、地级市经济排名（GDP Top 10）</h4>
-  <table class="ranking-table">
+  <div class="rank-table-scroll"><table class="ranking-table">
     <thead><tr><th>排名</th><th>城市</th><th>GDP(亿元)</th><th>预算收入(亿元)</th><th>预算支出(亿元)</th><th>债务余额(亿元)</th><th>负债率(%)</th></tr></thead>
-    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>南宁市</td><td>6212.46</td><td>381.7</td><td>822.34</td><td>1784.79</td><td>28.7</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>柳州市</td><td>3096.91</td><td>167.0</td><td>479.42</td><td>1157.33</td><td>37.4</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>桂林市</td><td>2579.53</td><td>150.65</td><td>537.59</td><td>1075.41</td><td>41.7</td></tr><tr><td><span class="rank-num ">4</span></td><td>玉林市</td><td>2437.44</td><td>96.91</td><td>454.44</td><td>871.28</td><td>35.7</td></tr><tr><td><span class="rank-num ">5</span></td><td>百色市</td><td>2101.34</td><td>165.18</td><td>495.41</td><td>926.68</td><td>44.1</td></tr><tr><td><span class="rank-num ">6</span></td><td>北海市</td><td>1974.04</td><td>81.31</td><td>214.82</td><td>426.44</td><td>21.6</td></tr><tr><td><span class="rank-num ">7</span></td><td>钦州市</td><td>1907.61</td><td>101.64</td><td>324.82</td><td>800.51</td><td>42.0</td></tr><tr><td><span class="rank-num ">8</span></td><td>梧州市</td><td>1719.79</td><td>85.93</td><td>289.72</td><td>667.54</td><td>38.8</td></tr><tr><td><span class="rank-num ">9</span></td><td>贵港市</td><td>1628.44</td><td>60.78</td><td>346.33</td><td>608.25</td><td>37.4</td></tr><tr><td><span class="rank-num ">10</span></td><td>河池市</td><td>1453.62</td><td>58.84</td><td>435.23</td><td>633.06</td><td>43.6</td></tr></tbody></table>
+    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>南宁市</td><td>6212.46</td><td>381.7</td><td>822.34</td><td>1784.79</td><td>28.7</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>柳州市</td><td>3096.91</td><td>167.0</td><td>479.42</td><td>1157.33</td><td>37.4</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>桂林市</td><td>2579.53</td><td>150.65</td><td>537.59</td><td>1075.41</td><td>41.7</td></tr><tr><td><span class="rank-num ">4</span></td><td>玉林市</td><td>2437.44</td><td>96.91</td><td>454.44</td><td>871.28</td><td>35.7</td></tr><tr><td><span class="rank-num ">5</span></td><td>百色市</td><td>2101.34</td><td>165.18</td><td>495.41</td><td>926.68</td><td>44.1</td></tr><tr><td><span class="rank-num ">6</span></td><td>北海市</td><td>1974.04</td><td>81.31</td><td>214.82</td><td>426.44</td><td>21.6</td></tr><tr><td><span class="rank-num ">7</span></td><td>钦州市</td><td>1907.61</td><td>101.64</td><td>324.82</td><td>800.51</td><td>42.0</td></tr><tr><td><span class="rank-num ">8</span></td><td>梧州市</td><td>1719.79</td><td>85.93</td><td>289.72</td><td>667.54</td><td>38.8</td></tr><tr><td><span class="rank-num ">9</span></td><td>贵港市</td><td>1628.44</td><td>60.78</td><td>346.33</td><td>608.25</td><td>37.4</td></tr><tr><td><span class="rank-num ">10</span></td><td>河池市</td><td>1453.62</td><td>58.84</td><td>435.23</td><td>633.06</td><td>43.6</td></tr></tbody></table></div>
 
   <h4>三、区县经济亮点（GDP Top 10）</h4>
-  <table class="ranking-table">
+  <div class="rank-table-scroll"><table class="ranking-table">
     <thead><tr><th>排名</th><th>区县</th><th>所属地级市</th><th>GDP(亿元)</th><th>预算收入(亿元)</th><th>债务余额(亿元)</th></tr></thead>
-    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>青秀区</td><td>南宁市</td><td>1597.02</td><td>32.95</td><td>26.26</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>西乡塘区</td><td>南宁市</td><td>1091.26</td><td>12.0</td><td>20.98</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>港口区</td><td>防城港市</td><td>803.83</td><td>9.28</td><td>31.52</td></tr><tr><td><span class="rank-num ">4</span></td><td>江南区</td><td>南宁市</td><td>705.32</td><td>8.04</td><td>11.57</td></tr><tr><td><span class="rank-num ">5</span></td><td>海城区</td><td>北海市</td><td>659.93</td><td>5.99</td><td>11.45</td></tr><tr><td><span class="rank-num ">6</span></td><td>玉州区</td><td>玉林市</td><td>632.92</td><td>7.77</td><td>47.5</td></tr><tr><td><span class="rank-num ">7</span></td><td>铁山港区</td><td>北海市</td><td>595.16</td><td>4.33</td><td>7.51</td></tr><tr><td><span class="rank-num ">8</span></td><td>鱼峰区</td><td>柳州市</td><td>582.04</td><td>5.75</td><td>6.31</td></tr><tr><td><span class="rank-num ">9</span></td><td>良庆区</td><td>南宁市</td><td>543.41</td><td>17.15</td><td>23.11</td></tr><tr><td><span class="rank-num ">10</span></td><td>柳南区</td><td>柳州市</td><td>525.97</td><td>9.21</td><td>5.46</td></tr></tbody></table>
+    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>青秀区</td><td>南宁市</td><td>1597.02</td><td>32.95</td><td>26.26</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>西乡塘区</td><td>南宁市</td><td>1091.26</td><td>12.0</td><td>20.98</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>港口区</td><td>防城港市</td><td>803.83</td><td>9.28</td><td>31.52</td></tr><tr><td><span class="rank-num ">4</span></td><td>江南区</td><td>南宁市</td><td>705.32</td><td>8.04</td><td>11.57</td></tr><tr><td><span class="rank-num ">5</span></td><td>海城区</td><td>北海市</td><td>659.93</td><td>5.99</td><td>11.45</td></tr><tr><td><span class="rank-num ">6</span></td><td>玉州区</td><td>玉林市</td><td>632.92</td><td>7.77</td><td>47.5</td></tr><tr><td><span class="rank-num ">7</span></td><td>铁山港区</td><td>北海市</td><td>595.16</td><td>4.33</td><td>7.51</td></tr><tr><td><span class="rank-num ">8</span></td><td>鱼峰区</td><td>柳州市</td><td>582.04</td><td>5.75</td><td>6.31</td></tr><tr><td><span class="rank-num ">9</span></td><td>良庆区</td><td>南宁市</td><td>543.41</td><td>17.15</td><td>23.11</td></tr><tr><td><span class="rank-num ">10</span></td><td>柳南区</td><td>柳州市</td><td>525.97</td><td>9.21</td><td>5.46</td></tr></tbody></table></div>
 
   <h4>四、核心发现</h4>
   <ul>
@@ -607,14 +749,14 @@ body::-webkit-scrollbar-thumb:hover {
   <p>贵州省2025年GDP为 <span class="highlight-blue">23,562.17亿元</span>，三省中最小。但一般公共预算收入 2,223.23亿元，与云南相近，财政自给率 33.9%甚至略高于云南。核心问题在于：<span class="highlight">负债率高达 82.2%</span>，远超云南和广西；<span class="highlight">土地财政依赖度高达 115.9%</span>，政府性基金收入 2,576亿元甚至超过一般公共预算收入，反映出贵州财政对土地出让收入的高度依赖。</p>
 
   <h4>二、地级市经济排名（GDP Top 10）</h4>
-  <table class="ranking-table">
+  <div class="rank-table-scroll"><table class="ranking-table">
     <thead><tr><th>排名</th><th>城市</th><th>GDP(亿元)</th><th>预算收入(亿元)</th><th>预算支出(亿元)</th><th>债务余额(亿元)</th><th>负债率(%)</th></tr></thead>
-    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>贵阳市</td><td>6038.15</td><td>490.76</td><td>814.5</td><td>4329.42</td><td>71.7</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>遵义市</td><td>5206.12</td><td>358.0</td><td>870.41</td><td>3052.42</td><td>58.6</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>毕节市</td><td>2541.14</td><td>140.04</td><td>754.37</td><td>1784.17</td><td>70.2</td></tr><tr><td><span class="rank-num ">4</span></td><td>黔南布依族苗族自治州</td><td>2008.49</td><td>133.29</td><td>503.66</td><td>1705.25</td><td>84.9</td></tr><tr><td><span class="rank-num ">5</span></td><td>六盘水市</td><td>1777.75</td><td>117.43</td><td>363.11</td><td>1267.35</td><td>71.3</td></tr><tr><td><span class="rank-num ">6</span></td><td>铜仁市</td><td>1722.66</td><td>77.03</td><td>504.86</td><td>1517.61</td><td>88.1</td></tr><tr><td><span class="rank-num ">7</span></td><td>黔西南布依族苗族自治州</td><td>1535.28</td><td>97.22</td><td>419.56</td><td>1215.5</td><td>79.2</td></tr><tr><td><span class="rank-num ">8</span></td><td>黔东南苗族侗族自治州</td><td>1500.24</td><td>83.67</td><td>556.54</td><td>1139.12</td><td>75.9</td></tr><tr><td><span class="rank-num ">9</span></td><td>安顺市</td><td>1232.35</td><td>68.31</td><td>302.85</td><td>844.8</td><td>68.6</td></tr><tr><td><span class="rank-num ">10</span></td><td>贵阳经济技术开发区</td><td>—</td><td>14.04</td><td>19.59</td><td>128.8</td><td>—</td></tr></tbody></table>
+    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>贵阳市</td><td>6038.15</td><td>490.76</td><td>814.5</td><td>4329.42</td><td>71.7</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>遵义市</td><td>5206.12</td><td>358.0</td><td>870.41</td><td>3052.42</td><td>58.6</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>毕节市</td><td>2541.14</td><td>140.04</td><td>754.37</td><td>1784.17</td><td>70.2</td></tr><tr><td><span class="rank-num ">4</span></td><td>黔南布依族苗族自治州</td><td>2008.49</td><td>133.29</td><td>503.66</td><td>1705.25</td><td>84.9</td></tr><tr><td><span class="rank-num ">5</span></td><td>六盘水市</td><td>1777.75</td><td>117.43</td><td>363.11</td><td>1267.35</td><td>71.3</td></tr><tr><td><span class="rank-num ">6</span></td><td>铜仁市</td><td>1722.66</td><td>77.03</td><td>504.86</td><td>1517.61</td><td>88.1</td></tr><tr><td><span class="rank-num ">7</span></td><td>黔西南布依族苗族自治州</td><td>1535.28</td><td>97.22</td><td>419.56</td><td>1215.5</td><td>79.2</td></tr><tr><td><span class="rank-num ">8</span></td><td>黔东南苗族侗族自治州</td><td>1500.24</td><td>83.67</td><td>556.54</td><td>1139.12</td><td>75.9</td></tr><tr><td><span class="rank-num ">9</span></td><td>安顺市</td><td>1232.35</td><td>68.31</td><td>302.85</td><td>844.8</td><td>68.6</td></tr><tr><td><span class="rank-num ">10</span></td><td>贵阳经济技术开发区</td><td>—</td><td>14.04</td><td>19.59</td><td>128.8</td><td>—</td></tr></tbody></table></div>
 
   <h4>三、区县经济亮点（GDP Top 10）</h4>
-  <table class="ranking-table">
+  <div class="rank-table-scroll"><table class="ranking-table">
     <thead><tr><th>排名</th><th>区县</th><th>所属地级市</th><th>GDP(亿元)</th><th>预算收入(亿元)</th><th>债务余额(亿元)</th></tr></thead>
-    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>仁怀市</td><td>遵义市</td><td>2026.43</td><td>130.53</td><td>144.14</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>南明区</td><td>贵阳市</td><td>1207.04</td><td>26.11</td><td>161.16</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>云岩区</td><td>贵阳市</td><td>1126.69</td><td>31.6</td><td>86.0</td></tr><tr><td><span class="rank-num ">4</span></td><td>花溪区</td><td>贵阳市</td><td>1023.71</td><td>13.85</td><td>451.99</td></tr><tr><td><span class="rank-num ">5</span></td><td>观山湖区</td><td>贵阳市</td><td>887.64</td><td>49.37</td><td>392.28</td></tr><tr><td><span class="rank-num ">6</span></td><td>盘州市</td><td>六盘水市</td><td>759.57</td><td>48.78</td><td>315.01</td></tr><tr><td><span class="rank-num ">7</span></td><td>七星关区</td><td>毕节市</td><td>619.31</td><td>25.59</td><td>398.0</td></tr><tr><td><span class="rank-num ">8</span></td><td>兴义市</td><td>黔西南布依族苗族自治州</td><td>588.49</td><td>33.02</td><td>458.28</td></tr><tr><td><span class="rank-num ">9</span></td><td>汇川区</td><td>遵义市</td><td>560.02</td><td>20.29</td><td>261.96</td></tr><tr><td><span class="rank-num ">10</span></td><td>遵义经济技术开发区</td><td>遵义市</td><td>560.02</td><td>20.29</td><td>261.96</td></tr></tbody></table>
+    <tbody><tr><td><span class="rank-num rank-1">1</span></td><td>仁怀市</td><td>遵义市</td><td>2026.43</td><td>130.53</td><td>144.14</td></tr><tr><td><span class="rank-num rank-2">2</span></td><td>南明区</td><td>贵阳市</td><td>1207.04</td><td>26.11</td><td>161.16</td></tr><tr><td><span class="rank-num rank-3">3</span></td><td>云岩区</td><td>贵阳市</td><td>1126.69</td><td>31.6</td><td>86.0</td></tr><tr><td><span class="rank-num ">4</span></td><td>花溪区</td><td>贵阳市</td><td>1023.71</td><td>13.85</td><td>451.99</td></tr><tr><td><span class="rank-num ">5</span></td><td>观山湖区</td><td>贵阳市</td><td>887.64</td><td>49.37</td><td>392.28</td></tr><tr><td><span class="rank-num ">6</span></td><td>盘州市</td><td>六盘水市</td><td>759.57</td><td>48.78</td><td>315.01</td></tr><tr><td><span class="rank-num ">7</span></td><td>七星关区</td><td>毕节市</td><td>619.31</td><td>25.59</td><td>398.0</td></tr><tr><td><span class="rank-num ">8</span></td><td>兴义市</td><td>黔西南布依族苗族自治州</td><td>588.49</td><td>33.02</td><td>458.28</td></tr><tr><td><span class="rank-num ">9</span></td><td>汇川区</td><td>遵义市</td><td>560.02</td><td>20.29</td><td>261.96</td></tr><tr><td><span class="rank-num ">10</span></td><td>遵义经济技术开发区</td><td>遵义市</td><td>560.02</td><td>20.29</td><td>261.96</td></tr></tbody></table></div>
 
   <h4>四、核心发现</h4>
   <ul>
@@ -630,7 +772,7 @@ body::-webkit-scrollbar-thumb:hover {
 <div class="section-title">三省综合对比与总结</div>
 <div class="analysis-section">
   <h3>横向对比总结</h3>
-  <table class="ranking-table">
+  <div class="rank-table-scroll"><table class="ranking-table">
     <thead><tr><th>指标</th><th>🔴 云南省</th><th>🟢 广西壮族自治区</th><th>🟡 贵州省</th><th>三省对比</th></tr></thead>
     <tbody>
       <tr><td>GDP(亿元)</td><td>32,765.78</td><td>29,727.45</td><td>23,562.17</td><td>云南 > 广西 > 贵州</td></tr>
@@ -642,7 +784,7 @@ body::-webkit-scrollbar-thumb:hover {
       <tr style="background:#f8d7da"><td><b>负债率(%)</b></td><td>55.9</td><td>49.6</td><td>82.2</td><td>贵州 >> 云南 > 广西</td></tr>
       <tr style="background:#f8d7da"><td><b>土地财政依赖度(%)</b></td><td>39.8</td><td>31.1</td><td>115.9</td><td>贵州 >> 云南 > 广西</td></tr>
     </tbody>
-  </table>
+  </table></div>
 
   <h4>核心结论</h4>
   <ol>
@@ -726,6 +868,30 @@ let sortCol = '序号';
 let sortDir = 'asc';
 let pageSize = 50;
 let currentPage = 1;
+let viewMode = 'table';
+
+function switchView(mode) {
+  viewMode = mode;
+  const tableWrap = document.getElementById('tableWrap');
+  const cardList = document.getElementById('cardList');
+  if (mode === 'card') {
+    tableWrap.style.display = 'none';
+    cardList.classList.add('active');
+    document.getElementById('viewCard').classList.add('active');
+    document.getElementById('viewTable').classList.remove('active');
+  } else {
+    tableWrap.style.display = 'block';
+    cardList.classList.remove('active');
+    document.getElementById('viewTable').classList.add('active');
+    document.getElementById('viewCard').classList.remove('active');
+  }
+  renderTable();
+}
+
+// Auto-switch to card view on mobile
+if (window.innerWidth <= 600) {
+  switchView('card');
+}
 
 function fmtNum(v) {
   if (v === null || v === undefined || v === '') return '<span class="null-val">—</span>';
@@ -783,7 +949,6 @@ function getFilteredData() {
 
 function renderTable() {
   const data = getFilteredData();
-  const tbody = document.getElementById('tableBody');
   
   let displayData = data;
   if (pageSize !== 'all') {
@@ -791,25 +956,11 @@ function renderTable() {
     displayData = data.slice(start, start + parseInt(pageSize));
   }
 
-  tbody.innerHTML = displayData.map(r => {
-    const levelClass = r['层级'] === 'province' ? 'level-province' : r['层级'] === 'city' ? 'level-city' : r['层级'] === 'county' ? 'level-county' : 'level-other';
-    const levelText = r['层级'] === 'province' ? '省级' : r['层级'] === 'city' ? '市级' : r['层级'] === 'county' ? '区县级' : '其他';
-    const debtRatio = calcDebtRatio(r);
-    return '<tr>' +
-      '<td>' + r['序号'] + '</td>' +
-      '<td>' + r['地区名称'] + '</td>' +
-      '<td>' + (r['省份'] || '—') + '</td>' +
-      '<td>' + (r['地级市'] || '—') + '</td>' +
-      '<td>' + (r['区县'] || '—') + '</td>' +
-      '<td><span class="' + levelClass + '">' + levelText + '</span></td>' +
-      '<td>' + fmtNum(r['GDP']) + '</td>' +
-      '<td>' + fmtNum(r['一般公共预算收入']) + '</td>' +
-      '<td>' + fmtNum(r['一般公共预算支出']) + '</td>' +
-      '<td>' + fmtNum(r['政府性基金收入']) + '</td>' +
-      '<td>' + fmtNum(r['地方政府债务余额']) + '</td>' +
-      '<td>' + fmtRatio(debtRatio) + '</td>' +
-      '</tr>';
-  }).join('');
+  if (viewMode === 'card') {
+    renderCards(displayData);
+  } else {
+    renderRows(displayData);
+  }
 
   // Footer
   const footer = document.getElementById('tableFooter');
@@ -842,6 +993,55 @@ function renderTable() {
     const activeBtn = document.querySelector('.sort-btn[onclick*="' + sortCol + '"][onclick*="' + sortDir + '"]');
     if (activeBtn) activeBtn.classList.add('active');
   }
+}
+
+function renderRows(displayData) {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = displayData.map(r => {
+    const levelClass = r['层级'] === 'province' ? 'level-province' : r['层级'] === 'city' ? 'level-city' : r['层级'] === 'county' ? 'level-county' : 'level-other';
+    const levelText = r['层级'] === 'province' ? '省级' : r['层级'] === 'city' ? '市级' : r['层级'] === 'county' ? '区县级' : '其他';
+    const debtRatio = calcDebtRatio(r);
+    return '<tr>' +
+      '<td>' + r['序号'] + '</td>' +
+      '<td>' + r['地区名称'] + '</td>' +
+      '<td>' + (r['省份'] || '—') + '</td>' +
+      '<td>' + (r['地级市'] || '—') + '</td>' +
+      '<td>' + (r['区县'] || '—') + '</td>' +
+      '<td><span class="' + levelClass + '">' + levelText + '</span></td>' +
+      '<td>' + fmtNum(r['GDP']) + '</td>' +
+      '<td>' + fmtNum(r['一般公共预算收入']) + '</td>' +
+      '<td>' + fmtNum(r['一般公共预算支出']) + '</td>' +
+      '<td>' + fmtNum(r['政府性基金收入']) + '</td>' +
+      '<td>' + fmtNum(r['地方政府债务余额']) + '</td>' +
+      '<td>' + fmtRatio(debtRatio) + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function renderCards(displayData) {
+  const cardList = document.getElementById('cardList');
+  cardList.innerHTML = displayData.map(r => {
+    const level = r['层级'];
+    const levelText = level === 'province' ? '省级' : level === 'city' ? '市级' : level === 'county' ? '区县级' : '其他';
+    const debtRatio = calcDebtRatio(r);
+    const loc = [r['省份'], r['地级市'], r['区县']].filter(x => x).join(' · ');
+    const dangerClass = debtRatio && debtRatio > 60 ? ' danger' : '';
+    return '<div class="econ-card level-' + level + '">' +
+      '<div class="econ-card-head">' +
+        '<div class="econ-card-name">' + r['地区名称'] + '</div>' +
+        '<span class="econ-card-badge ' + level + '">' + levelText + '</span>' +
+      '</div>' +
+      '<div class="econ-card-loc">' + loc + '</div>' +
+      '<div class="econ-card-metrics">' +
+        '<div class="econ-card-metric"><div class="ml">GDP</div><div class="mv">' + fmtNum(r['GDP']) + '<span class="mu">亿元</span></div></div>' +
+        '<div class="econ-card-metric"><div class="ml">预算收入</div><div class="mv">' + fmtNum(r['一般公共预算收入']) + '<span class="mu">亿元</span></div></div>' +
+        '<div class="econ-card-metric"><div class="ml">预算支出</div><div class="mv">' + fmtNum(r['一般公共预算支出']) + '<span class="mu">亿元</span></div></div>' +
+        '<div class="econ-card-metric"><div class="ml">基金收入</div><div class="mv">' + fmtNum(r['政府性基金收入']) + '<span class="mu">亿元</span></div></div>' +
+        '<div class="econ-card-metric"><div class="ml">债务余额</div><div class="mv">' + fmtNum(r['地方政府债务余额']) + '<span class="mu">亿元</span></div></div>' +
+        '<div class="econ-card-metric' + dangerClass + '"><div class="ml">负债率</div><div class="mv">' + fmtRatio(debtRatio) + '</div></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
 
 function changePage(dir) {
